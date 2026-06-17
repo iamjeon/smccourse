@@ -1,158 +1,266 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, XCircle, Trophy } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, ArrowRight, RefreshCw } from "lucide-react";
 import type { QuizQuestion } from "@/content/schema";
 import { t } from "@/content/schema";
 import { useLocale } from "@/components/locale-provider";
+import { SmcChart } from "@/components/charts/SmcChart";
 import { Button } from "@/components/ui/button";
 import { saveQuizAttempt } from "@/app/actions";
 import { cn } from "@/lib/utils";
 
+/**
+ * One-question-per-page quiz with a mastery loop. The learner answers every question
+ * with instant feedback. To pass they must end with 100% correct, but they are never
+ * stuck: after a round, every question they missed is asked AGAIN in a review round, and
+ * that repeats until none are wrong. Then the quiz is passed and `onPassed` fires.
+ * (Owner decision: 100% pass, re-question the misses until all are answered correctly.)
+ */
 export function Quiz({
   quiz,
   lessonSlug,
+  onPassed,
+  onSave = saveQuizAttempt,
 }: {
   quiz: QuizQuestion[];
   lessonSlug: string;
+  onPassed: () => void;
+  /** How to persist the passing attempt. Defaults to the per-lesson action; the final
+   *  exam passes its own action (the exam slug isn't a real lesson). */
+  onSave?: (input: {
+    lessonSlug: string;
+    score: number;
+    total: number;
+    answers: Record<string, string>;
+  }) => Promise<{ ok: boolean; reason?: string }>;
 }) {
   const { locale } = useLocale();
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const tl = locale === "tl";
+  const total = quiz.length;
+
+  // The questions in the CURRENT round. Round 1 = all; later rounds = only the misses.
+  const [round, setRound] = useState<QuizQuestion[]>(quiz);
+  const [roundNum, setRoundNum] = useState(1);
+  const [pos, setPos] = useState(0);
+  const [chosen, setChosen] = useState<Record<string, string>>({}); // current round only
+  const [wrong, setWrong] = useState<QuizQuestion[]>([]); // misses accumulating this round
+  const [firstScore, setFirstScore] = useState<number | null>(null);
+  const [finished, setFinished] = useState(false);
   const [saveNote, setSaveNote] = useState<string | null>(null);
 
-  const total = quiz.length;
-  const score = quiz.filter((q) => answers[q.id] === q.correctOptionId).length;
-  const allAnswered = quiz.every((q) => answers[q.id]);
-  const passed = total > 0 && score / total >= 0.7;
+  if (total === 0) return null;
 
-  async function handleSubmit() {
-    setSubmitted(true);
-    const res = await saveQuizAttempt({ lessonSlug, score, total, answers });
+  const q = round[pos];
+  const picked = chosen[q.id];
+  const answered = picked != null;
+  const correct = answered && picked === q.correctOptionId;
+  const isLast = pos === round.length - 1;
+  const roundTotal = round.length;
+
+  function choose(optId: string) {
+    if (answered) return; // lock once answered
+    setChosen((a) => ({ ...a, [q.id]: optId }));
+    if (optId !== q.correctOptionId) {
+      setWrong((w) => (w.some((x) => x.id === q.id) ? w : [...w, q]));
+    }
+  }
+
+  async function saveAndPass() {
+    setFinished(true);
+    // They end the loop only by answering everything correctly, so the saved score is full.
+    const res = await onSave({
+      lessonSlug,
+      score: total,
+      total,
+      answers: Object.fromEntries(quiz.map((x) => [x.id, x.correctOptionId])),
+    });
+    onPassed();
     if (!res.ok) {
+      const reason = res.reason ?? "";
+      const dbMissing = /schema cache|does not exist|could not find the table/i.test(
+        reason,
+      );
       setSaveNote(
         res.reason === "not_signed_in" || res.reason === "not_configured"
-          ? "Sign in to save your score and track progress."
-          : "Couldn't save your score, but here are your results.",
+          ? tl
+            ? "Mag-sign in para ma-save ang progreso."
+            : "Sign in to save your progress."
+          : dbMissing
+            ? tl
+              ? "Hindi pa naka-setup ang database, kaya hindi na-save ang progreso."
+              : "Progress can't be saved yet: the database tables aren't set up."
+            : tl
+              ? "Hindi na-save ang score, pero naipasa mo ang quiz."
+              : "Couldn't save your score, but you passed the quiz.",
       );
     }
   }
 
-  function reset() {
-    setAnswers({});
-    setSubmitted(false);
+  function next() {
+    if (!isLast) {
+      setPos((p) => p + 1);
+      return;
+    }
+    // End of the round: gather the misses.
+    const missed = wrong;
+    if (roundNum === 1) setFirstScore(total - missed.length);
+    if (missed.length === 0) {
+      void saveAndPass();
+    } else {
+      // Start a review round containing only the questions they missed.
+      setRound(missed);
+      setWrong([]);
+      setChosen({});
+      setPos(0);
+      setRoundNum((n) => n + 1);
+    }
+  }
+
+  function restart() {
+    setRound(quiz);
+    setRoundNum(1);
+    setPos(0);
+    setChosen({});
+    setWrong([]);
+    setFirstScore(null);
+    setFinished(false);
     setSaveNote(null);
   }
 
-  if (total === 0) return null;
+  // ── Results screen (only reached at a clean 100%) ──
+  if (finished) {
+    const acedFirstTry = firstScore === total;
+    return (
+      <section className="mt-6 rounded-xl border border-border bg-card p-6 text-center shadow-card">
+        <Trophy className="mx-auto size-10 text-gold" />
+        <h3 className="mt-3 font-display text-xl font-bold text-bull">
+          {tl ? "Perpekto! 100%" : "Perfect! 100%"}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {acedFirstTry
+            ? tl
+              ? "Tama lahat sa unang subok. Ang galing!"
+              : "All correct on the first try. Excellent!"
+            : tl
+              ? `Naipasa mo lahat pagkatapos i-review ang mga nasagot mong mali (${total - (firstScore ?? 0)} tanong). Ito ang totoong natututo.`
+              : `You got everything right after reviewing the ones you missed (${total - (firstScore ?? 0)} question${total - (firstScore ?? 0) === 1 ? "" : "s"}). That's real learning.`}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {tl
+            ? "Pwede ka nang pumunta sa susunod."
+            : "You can move on to the next one."}
+        </p>
+        <Button variant="outline" onClick={restart} className="mt-4">
+          <RefreshCw className="size-4" />
+          {tl ? "Ulitin ang quiz" : "Take it again"}
+        </Button>
+        {saveNote && (
+          <p className="mt-4 text-xs text-muted-foreground">{saveNote}</p>
+        )}
+      </section>
+    );
+  }
 
+  // ── Question screen ──
   return (
-    <section className="mt-10 rounded-lg border border-border bg-card p-5 sm:p-6">
-      <div className="mb-5 flex items-center gap-2">
-        <Trophy className="size-5 text-gold" />
-        <h2 className="font-display text-xl font-semibold">
-          {locale === "tl" ? "Pagsusulit" : "Quiz"}
-        </h2>
-        <span className="ml-auto text-sm text-muted-foreground">
-          {total} {locale === "tl" ? "tanong" : "questions"}
+    <section className="mt-6 rounded-xl border border-border bg-card p-5 shadow-card sm:p-6">
+      {/* round banner: only shown during review rounds */}
+      {roundNum > 1 && (
+        <div className="mb-3 flex items-center gap-2 rounded-md bg-gold/10 px-3 py-2 text-sm text-foreground">
+          <RefreshCw className="size-4 text-gold" />
+          <span>
+            {tl
+              ? `Review round ${roundNum}: sagutin ulit ang mga namali (${roundTotal} natitira).`
+              : `Review round ${roundNum}: answer the ones you missed (${roundTotal} left).`}
+          </span>
+        </div>
+      )}
+
+      {/* progress */}
+      <div className="mb-4 flex items-center gap-3">
+        <span className="text-sm font-medium text-muted-foreground">
+          {tl ? "Tanong" : "Question"} {pos + 1}/{roundTotal}
         </span>
+        <div className="flex flex-1 gap-1">
+          {round.map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1.5 flex-1 rounded-full",
+                i < pos || (i === pos && answered) ? "bg-primary" : "bg-border",
+              )}
+            />
+          ))}
+        </div>
       </div>
 
-      <ol className="space-y-6">
-        {quiz.map((q, qi) => {
-          const chosen = answers[q.id];
-          return (
-            <li key={q.id}>
-              <p className="mb-3 font-medium">
-                <span className="mr-2 text-muted-foreground">{qi + 1}.</span>
-                {t(q.prompt, locale)}
-              </p>
-              <div className="grid gap-2">
-                {q.options.map((opt) => {
-                  const isChosen = chosen === opt.id;
-                  const isCorrect = opt.id === q.correctOptionId;
-                  const showState = submitted && (isChosen || isCorrect);
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={submitted}
-                      onClick={() =>
-                        setAnswers((a) => ({ ...a, [q.id]: opt.id }))
-                      }
-                      className={cn(
-                        "flex items-center gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
-                        !submitted &&
-                          (isChosen
-                            ? "border-primary bg-primary/10"
-                            : "border-border hover:border-muted-foreground/50"),
-                        showState &&
-                          isCorrect &&
-                          "border-bull/60 bg-bull/10",
-                        showState &&
-                          isChosen &&
-                          !isCorrect &&
-                          "border-destructive/60 bg-destructive/10",
-                        submitted && !showState && "border-border opacity-70",
-                      )}
-                    >
-                      <span className="flex-1">{t(opt.text, locale)}</span>
-                      {showState && isCorrect && (
-                        <CheckCircle2 className="size-4 text-bull" />
-                      )}
-                      {showState && isChosen && !isCorrect && (
-                        <XCircle className="size-4 text-destructive" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              {submitted && (
-                <p className="mt-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                  {t(q.explanation, locale)}
-                </p>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      <p className="font-medium">{t(q.prompt, locale)}</p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-5">
-        {!submitted ? (
-          <Button onClick={handleSubmit} disabled={!allAnswered}>
-            {locale === "tl" ? "I-submit" : "Submit answers"}
-          </Button>
-        ) : (
-          <>
-            <div
+      {q.chart && <SmcChart spec={q.chart} />}
+
+      <div className="mt-4 grid gap-2">
+        {q.options.map((opt) => {
+          const isChosen = picked === opt.id;
+          const isCorrect = opt.id === q.correctOptionId;
+          const show = answered && (isChosen || isCorrect);
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              disabled={answered}
+              onClick={() => choose(opt.id)}
               className={cn(
-                "flex items-center gap-2 rounded-md px-4 py-2 font-medium",
-                passed ? "bg-bull/15 text-bull" : "bg-destructive/15 text-destructive",
+                "flex items-center gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
+                !answered && "border-border hover:border-primary/60",
+                show && isCorrect && "border-bull/60 bg-bull/10",
+                show && isChosen && !isCorrect && "border-destructive/60 bg-destructive/10",
+                answered && !show && "border-border opacity-60",
               )}
             >
-              {passed ? (
-                <CheckCircle2 className="size-5" />
-              ) : (
-                <XCircle className="size-5" />
+              <span className="flex-1">{t(opt.text, locale)}</span>
+              {show && isCorrect && <CheckCircle2 className="size-4 text-bull" />}
+              {show && isChosen && !isCorrect && (
+                <XCircle className="size-4 text-destructive" />
               )}
-              {score}/{total}{" "}
-              {passed
-                ? locale === "tl"
-                  ? "— Pasado! 🎉"
-                  : "— Passed! 🎉"
-                : locale === "tl"
-                  ? "— Subukan ulit"
-                  : "— Try again"}
-            </div>
-            <Button variant="outline" onClick={reset}>
-              {locale === "tl" ? "Ulitin" : "Retake"}
-            </Button>
-          </>
-        )}
-        {saveNote && (
-          <p className="w-full text-xs text-muted-foreground">{saveNote}</p>
-        )}
+            </button>
+          );
+        })}
       </div>
+
+      {answered && (
+        <>
+          <p
+            className={cn(
+              "mt-3 rounded-md px-3 py-2 text-sm",
+              correct ? "bg-bull/10 text-foreground" : "bg-muted/60 text-foreground",
+            )}
+          >
+            <span className="font-semibold">
+              {correct
+                ? tl
+                  ? "Tama! "
+                  : "Correct! "
+                : tl
+                  ? "Mali. Lalabas ulit ito mamaya para sagutin mo muli. "
+                  : "Not quite. This one will come back for you to answer again. "}
+            </span>
+            {t(q.explanation, locale)}
+          </p>
+          <div className="mt-4 flex justify-end">
+            <Button onClick={next}>
+              {isLast
+                ? tl
+                  ? "Tapusin ang round"
+                  : "Finish round"
+                : tl
+                  ? "Susunod na tanong"
+                  : "Next question"}
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        </>
+      )}
     </section>
   );
 }

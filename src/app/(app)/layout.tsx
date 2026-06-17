@@ -1,18 +1,10 @@
-import { SiteHeader } from "@/components/site-header";
-import { MobileTabBar } from "@/components/mobile-nav";
+import { AppShell } from "@/components/shell/app-shell";
 
-/** Layout for the authenticated learning area: header + content + mobile tab bar. */
+/** Authenticated learning area: responsive app shell (sidebar + mobile drawer). */
 export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <SiteHeader />
-      {/* pb to clear the fixed mobile tab bar */}
-      <main className="container pb-24 pt-6 sm:pb-12">{children}</main>
-      <MobileTabBar />
-    </>
-  );
+  return <AppShell>{children}</AppShell>;
 }

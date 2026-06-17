@@ -42,10 +42,23 @@ function LoginInner() {
   async function google() {
     const supabase = createClient();
     if (!supabase) return setStatus("unconfigured");
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
     });
+    if (error) {
+      const notSetUp =
+        /not enabled|unsupported|provider/i.test(error.message);
+      setError(
+        notSetUp
+          ? locale === "tl"
+            ? "Hindi pa naka-set up ang Google sign-in sa Supabase. Gamitin muna ang email magic link."
+            : "Google sign-in isn't enabled in Supabase yet. Use the email magic link for now."
+          : error.message,
+      );
+      setStatus("error");
+    }
+    // On success the browser redirects to Google, so nothing else to do here.
   }
 
   return (
@@ -60,8 +73,8 @@ function LoginInner() {
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {locale === "tl"
-            ? "Libre lahat. Email lang ang kailangan — walang password."
-            : "Everything is free. Just your email — no password."}
+            ? "Libre lahat. Email lang ang kailangan, walang password."
+            : "Everything is free. Just your email, no password."}
         </p>
 
         {status === "sent" ? (

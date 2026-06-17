@@ -24,40 +24,75 @@ Supabase (Auth + Postgres + RLS) · Vercel (TLS + CDN). Details:
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Map of the repo
-- `src/app/` — routes (landing, auth, dashboard, modules, lesson, quiz).
+- `src/app/` — routes (landing, auth, dashboard, course, lesson, exam, `/community`, `/admin`,
+  `/tools/*`, `/certificate`). `*-actions.ts` = grouped Server Actions (notes/chat/journal/admin).
 - `src/components/charts/` — interactive SMC chart engine (candles + annotations).
-- `src/components/ui/` — base UI primitives.
+- `src/components/ui/` — base UI primitives (Button, Card, Sheet, Input, Textarea, Badge).
+- `src/components/shell/` — responsive app shell (desktop sidebar + mobile drawer) for `(app)`.
+- `src/components/floating/notes-panel.tsx` — private notes slide-over (opened from the shell).
+- `src/components/community/` — full-page global chat (presence + reactions).
+- `src/components/admin/` — admin dashboard islands (user table, moderation, announcements).
 - `src/content/course.ts` — course taxonomy (modules/lessons). Static, in code.
 - `src/content/lessons/` — per-lesson typed content (EN + TL) + chart specs + quiz.
-- `src/lib/supabase/` — client/server/middleware Supabase helpers.
+- `src/content/glossary.ts` — SMC glossary (bilingual, faithful to lessons).
+- `src/lib/supabase/` — client/server/middleware helpers + `require-user` (`requireUser`/`requireAdmin`).
+- `src/lib/auth.ts` — admin role check (`isAdmin`; role = `app_metadata` JWT claim).
 - `src/lib/brand.ts` — brand name/tagline. Colors: [BRAND.md](BRAND.md).
-- `supabase/migrations/` — DB schema + RLS.
+- `supabase/migrations/` — DB schema + RLS (`0002` notes/chat/journal/announcements + admin;
+  `0003` journal lesson-link + chat reactions).
 - `.claude/` — agents & skills (see below).
 
-## Content pipeline
-Transforming a transcript → lesson is a defined process: verify → clean & structure
-(EN+TL) → spec visuals → generate quiz → review. Full method:
-[CONTENT-PIPELINE.md](CONTENT-PIPELINE.md). Use the `smc-content` skill /
-`smc-lesson-builder` agent.
+## Content pipeline (READ COURSE-BUILD.md FIRST)
+**[COURSE-BUILD.md](COURSE-BUILD.md) is the durable master plan** (22-lesson inventory, rules,
+build order, final-exam spec) — read it first; it must survive context compaction. Flow:
+verify → **coverage checklist** → clean & structure (EN+TL, story-style) → spec **guided**
+charts (steps + "Spot it" tips + structural proof) → **10-question** quiz (100% pass) →
+verify (`check:coverage`, `validate:charts`, `typecheck`, `lint`) → review. Full method:
+[CONTENT-PIPELINE.md](CONTENT-PIPELINE.md). Use the `smc-content`/`smc-chart` skills +
+`smc-lesson-builder`/`smc-chart-builder` agents. Beginner-first: spoon-feed, never assume.
 
 ## Agents & skills (`.claude/`)
 - `agents/smc-lesson-builder.md` — converts one transcript into a reviewable lesson.
+- `agents/smc-chart-builder.md` — builds/fixes ONE chart until the validator passes.
+- `agents/smc-smoke-tester.md` — runs the debug + smoke test and reports pass/fail.
 - `skills/smc-content/` — the transformation method + templates.
+- `skills/smc-chart/` — accurate chart-authoring rules.
+- `skills/smc-design/` — brand + UI/UX + app-shell guardrails for any new screen.
+- `skills/smc-smoke/` — the debug + smoke-test procedure (run after every change).
 - `skills/prompt-helper/` — turns the owner's rough idea into a clear prompt.
-- `skills/smc-design/` — brand + mobile UI guardrails for any new screen.
+
+## Always smoke-test after a change (IMPORTANT)
+After ANY code or schema change, run the **`smc-smoke`** procedure (or the
+**`smc-smoke-tester`** agent) BEFORE reporting done: `typecheck`, `lint`, `validate:charts`,
+`check:coverage`, and (for UI/route/dep changes) `npm run build` — confirm `/learn` stays SSG,
+then delete `.next`. After a DB migration, also run the Supabase security advisor via MCP.
 
 ## Commands
 - `npm run dev` — local dev (http://localhost:3000).
 - `npm run build` — production build. `npm run typecheck` — types. `npm run lint`.
-- DB: apply files in `supabase/migrations/` via the Supabase SQL editor or CLI.
+- `npm run validate:charts` — chart accuracy (0 errors). `npm run check:coverage` — every
+  lesson has a `// COVERAGE` checklist (smoke test).
+- DB: apply files in `supabase/migrations/` (kept in sync with the live project).
+
+## Platform tasks — use the MCP first
+For Supabase (and other platforms like Vercel), **prefer the connected MCP** over manual
+dashboard/CLI steps: apply migrations, inspect tables, read logs, and run security advisors
+through it. The Supabase project is **`bgsewtiawzbueeswhvem` ("SMC Course")** and the schema
+above is already applied. After any DDL change, run the security advisor and keep
+`supabase/migrations/` matching the live DB.
 
 ## Conventions
 - Lesson content is **typed TS objects**, not MDX (better for bilingual + embedded
   interactive charts). See [DECISIONS.md](DECISIONS.md).
-- Course structure lives in code (cacheable); the DB only stores per-user rows
-  (`profiles`, `enrollments`, `lesson_progress`, `quiz_attempts`).
+- Course structure + glossary live in code (cacheable); the DB stores per-user rows
+  (`profiles`, `enrollments`, `lesson_progress`, `quiz_attempts`, `notes`, `journal_entries`)
+  plus community tables (`chat_messages`, `chat_bans`, `announcements`).
 - Slugs are the join key between code content and DB progress — never reuse a slug.
-- Prefer Server Components; mark interactive bits `"use client"`.
+- Prefer Server Components; mark interactive bits `"use client"`. Keep `/learn` SSG: anything
+  mounted in `(app)/layout.tsx` must be a client component, never a server fetch.
+- **Admin** = a non-editable `app_metadata` JWT claim; check with `isAdmin` ([src/lib/auth.ts](src/lib/auth.ts)).
+  Admin cross-user reads go through RLS ("admin read all" policies) + SECURITY INVOKER RPCs. No CMS:
+  lesson content stays in code; the admin dashboard is analytics + moderation + preview only.
 
 ## Self-updating rule (IMPORTANT)
 When we agree on a new decision, convention, or method during a session:

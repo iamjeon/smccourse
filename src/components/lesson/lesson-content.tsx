@@ -4,7 +4,7 @@ import { Lightbulb, AlertTriangle, KeyRound, ImageIcon } from "lucide-react";
 import type { Block } from "@/content/schema";
 import { t } from "@/content/schema";
 import { useLocale } from "@/components/locale-provider";
-import { SmcChart } from "@/components/charts/SmcChart";
+import { SmcChart, GuidedChart } from "@/components/charts/SmcChart";
 import { cn } from "@/lib/utils";
 
 const calloutStyles = {
@@ -98,7 +98,11 @@ export function LessonContent({ blocks }: { blocks: Block[] }) {
             );
           }
           case "chart":
-            return <SmcChart key={i} spec={block.spec} />;
+            return block.spec.steps?.length ? (
+              <GuidedChart key={i} spec={block.spec} />
+            ) : (
+              <SmcChart key={i} spec={block.spec} />
+            );
           case "imageSlot":
             return (
               <div

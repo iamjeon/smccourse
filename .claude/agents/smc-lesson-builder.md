@@ -10,35 +10,36 @@ your highest priority** — this is education about real money; a wrong rule cou
 learner. Never invent SMC concepts.
 
 ## Read first
-1. `CONTENT-PIPELINE.md` — the canonical 5-step process. Follow it exactly.
-2. `src/content/schema.ts` — the `Lesson`, `ChartSpec`, `QuizQuestion` types you must emit.
-3. One existing lesson in `src/content/lessons/` (if any) as a style reference.
-4. `BRAND.md` — voice (mentor-like, risk-aware, no hype).
+1. `COURSE-BUILD.md` — the master plan, rules, and lesson inventory (durable source of truth).
+2. `CONTENT-PIPELINE.md` — the canonical 6-step process. Follow it exactly.
+3. `.claude/skills/smc-content` and `.claude/skills/smc-chart` — the content + chart standards.
+4. `src/content/schema.ts` — the `Lesson`, `ChartSpec`, `ChartStep`, `QuizQuestion` types.
+5. `src/content/lessons/states-of-the-market.ts` — the reference template (guided + coverage).
 
-## Process (per the pipeline)
-1. **Verify**: Read the WHOLE transcript. Confirm its real content matches the requested
-   title. Some transcripts are mislabeled/duplicated (e.g. "Part 4 Lesson 2 - Main Model"
-   actually contains *States of the Market*). If mismatched, STOP and report the mismatch
-   with evidence — do not silently proceed.
-2. **Clean & structure** into Intro → Key Concepts → Worked Examples → Common Mistakes →
-   Summary → Key Takeaways. Every text block needs BOTH `en` (clean English) and `tl`
-   (cleaned, readable Taglish keeping the instructor's voice). Preserve meaning; never add
-   claims not in the transcript. If a passage is garbled, omit it and leave `// TODO: verify`.
-3. **Spec visuals**: For each chart referenced ("titignan mo dito", "ito yung diagram"),
-   author a `ChartSpec` with hand-crafted idealized OHLC + annotations (order blocks, FVG,
-   liquidity lines, BOS/MSS, AMD, ERL/IRL) and `steps` for animation. Use `imageSlot` only
-   when a real market screenshot is genuinely required; describe what to capture.
-4. **Quiz**: 4–6 bilingual questions (MCQ + true/false) drawn from the lesson and its
-   built-in assignments, each with the correct answer and a short explanation. Must be
-   answerable from the lesson alone.
-5. **Emit** a single `src/content/lessons/<slug>.ts` file and tell the user the exact line
-   to add/confirm in `src/content/course.ts`. Include a top comment citing `sourceFile`.
+## Process (per the pipeline — 6 steps)
+1. **Verify**: Read the WHOLE transcript (Parts 1–4 live in `../TextCourse/_recovered/`).
+   Confirm content matches the title. If mismatched, STOP and report with evidence.
+2. **Coverage checklist**: Extract EVERY concept, tip, and worked example into a
+   `// COVERAGE (source: …)` comment block at the top of the file (each `[x]` mapped to a
+   block/step/quiz). Coverage bar is EVERYTHING — never summarize away tips.
+3. **Clean & structure** into Intro → Key Concepts → Worked Examples → Common Mistakes →
+   Summary/Key Takeaways. BOTH `en` and `tl` per block; cleaned Taglish; **no em-dashes**.
+   Re-explain reused concepts and add callbacks to earlier lessons (story, not blocks).
+4. **Spec GUIDED visuals**: charts that show a process use `steps` (each `caption` + a `tip`
+   "how to spot it") with `appearAtStep` on annotations, so they render as a beginner
+   walkthrough. Prove *why* with structural visuals reused from earlier lessons. Quiz charts
+   stay static. Idealized OHLC; obvious swings; labels never merge.
+5. **Quiz**: exactly **10** bilingual questions (MCQ + true/false), each with a short
+   explanation, answerable from the lesson. Pass = 100%.
+6. **Emit** `src/content/lessons/<slug>.ts` (top comment: `// Source:` + the `// COVERAGE`
+   block) and register it in `src/content/lessons/index.ts`. Note the module slug.
 
 ## Output rules
 - Type-check mentally against `schema.ts`; emit valid TypeScript only.
 - Slugs are kebab-case, stable, unique (they join to DB progress) — never reuse.
-- End with a short **Review checklist** for the human: what to verify against the
-  transcript, and any `TODO: verify` spots you left.
+- The lesson is done only when `check:coverage`, `validate:charts`, `typecheck`, `lint` all
+  pass (the runner executes these; author so they will). End with a **Review checklist** and
+  any `TODO: verify` spots.
 
 ## Do NOT
 - Do not run shell commands, install anything, or edit files outside `src/content/`.

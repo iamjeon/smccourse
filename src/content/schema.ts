@@ -48,6 +48,12 @@ export type LineAnnotation = {
   tone?: Tone;
   dashed?: boolean;
   label?: LocaleText;
+  /**
+   * Where the label sits relative to the line. "center" draws it on the line itself
+   * (the classic `——— MSS ———` look traders use); "end" places it just past the right
+   * end. Defaults to "end".
+   */
+  labelPlacement?: "center" | "end";
   appearAtStep?: number;
 };
 
@@ -92,8 +98,16 @@ export type Annotation =
   | TextAnnotation
   | PathAnnotation;
 
-/** One animation step: a caption + how many candles are revealed. */
-export type ChartStep = { caption: LocaleText; revealCandles: number };
+/**
+ * One guided step: a plain-language explanation (`caption`), an optional eye-catching
+ * "how to spot it" hint (`tip`, rendered separately with an icon), and how many candles
+ * are revealed at this step.
+ */
+export type ChartStep = {
+  caption: LocaleText;
+  tip?: LocaleText;
+  revealCandles: number;
+};
 
 export type ChartSpec = {
   id: string;
@@ -129,6 +143,8 @@ export type QuizQuestion = {
   id: string;
   type: "mcq" | "truefalse";
   prompt: LocaleText;
+  /** Optional chart shown with the question (e.g. "which box is the valid OB?"). */
+  chart?: ChartSpec;
   options: QuizOption[];
   correctOptionId: string;
   explanation: LocaleText;
@@ -150,7 +166,20 @@ export type Lesson = {
 
 export type ModuleMeta = {
   slug: string;
+  /** Which course this module belongs to. */
+  courseSlug: string;
   order: number;
   title: LocaleText;
   description: LocaleText;
+};
+
+/** A course groups modules. The platform supports many; today there is one. */
+export type Course = {
+  slug: string;
+  order: number;
+  title: LocaleText;
+  subtitle: LocaleText;
+  description: LocaleText;
+  /** Short level label, e.g. "Beginner → Expert". */
+  level: LocaleText;
 };

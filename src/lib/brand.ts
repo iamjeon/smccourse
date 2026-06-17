@@ -8,9 +8,9 @@
 export const brand = {
   name: "Liquidity Lab",
   shortName: "LiqLab",
-  tagline: "Learn Smart Money Concepts — for free.",
+  tagline: "Learn Smart Money Concepts for free.",
   description:
-    "A free, self-paced Smart Money Concepts trading course. Modules, lessons, interactive charts, and quizzes — built for traders, by traders.",
+    "A free, self-paced Smart Money Concepts trading course. Modules, lessons, interactive charts, and quizzes, built for traders, by traders.",
   // Default learning locale shown before a user sets a preference.
   defaultLocale: "en" as const,
 } as const;

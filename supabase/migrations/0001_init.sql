@@ -95,3 +95,7 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- handle_new_user runs only from the trigger above, never via the API. Revoke EXECUTE so it
+-- can't be invoked through PostgREST RPC by anon/authenticated (security advisor 0028/0029).
+revoke all on function public.handle_new_user() from public, anon, authenticated;

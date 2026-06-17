@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { brand } from "@/lib/brand";
 import { LocaleProvider } from "@/components/locale-provider";
+import { ThemeProvider, themeScript } from "@/components/theme-provider";
 import "./globals.css";
 
 const sans = Inter({
@@ -22,7 +23,7 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${brand.name} — ${brand.tagline}`,
+    default: `${brand.name} · ${brand.tagline}`,
     template: `%s · ${brand.name}`,
   },
   description: brand.description,
@@ -41,11 +42,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${sans.variable} ${display.variable} ${mono.variable} font-sans min-h-dvh`}
       >
-        <LocaleProvider>{children}</LocaleProvider>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ThemeProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

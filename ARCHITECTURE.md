@@ -39,11 +39,18 @@ How Liquidity Lab stays free while serving thousands of users, and how the piece
   the DB directly with elevated rights; RLS enforces "users touch only their own rows."
 
 ## Data model (see `supabase/migrations/`)
-- `profiles(id → auth.users, display_name, locale_pref, created_at)`
+- `profiles(id → auth.users, display_name, email, locale_pref, created_at)`
 - `enrollments(user_id, enrolled_at)` — one row = enrolled in the course.
 - `lesson_progress(user_id, lesson_slug, status, last_viewed_at, completed_at)`
 - `quiz_attempts(user_id, lesson_slug, score, total, answers jsonb, attempted_at)`
-- All tables: RLS `using (auth.uid() = user_id)`. Slugs come from `src/content/course.ts`.
+- `notes(id, user_id, content, lesson_slug, …)` — private scratchpad.
+- `journal_entries(id, user_id, pair, direction, entry/stop/target, rr, outcome, …)` — private.
+- `chat_messages(id, user_id, display_name, body, deleted_at, …)` + `chat_bans` — global chat
+  (Realtime). `announcements(id, body, active, …)` — admin → all.
+- Per-user tables: RLS `using (auth.uid() = user_id)`, plus an "admin read all" SELECT policy
+  gated on `public.is_admin()` (admin = a non-editable `auth.users.app_metadata` JWT claim).
+  Chat is readable by any signed-in user (non-deleted) and moderated by admins. Slugs come from
+  `src/content/course.ts`.
 
 ## Caching & performance
 - Static pages: immutable CDN caching by Next/Vercel.

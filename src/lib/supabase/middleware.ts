@@ -37,7 +37,17 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Gate the learning area behind auth.
-  const protectedPrefixes = ["/dashboard", "/learn"];
+  const protectedPrefixes = [
+    "/dashboard",
+    "/academy",
+    "/learn",
+    "/courses",
+    "/tools",
+    "/admin",
+    "/community",
+    "/exam",
+    "/certificate",
+  ];
   const isProtected = protectedPrefixes.some((p) =>
     request.nextUrl.pathname.startsWith(p),
   );
@@ -47,6 +57,16 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login";
     url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
+  }
+
+  // The admin area additionally requires the admin role (a JWT app_metadata claim).
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    const role = (user?.app_metadata as { role?: string } | undefined)?.role;
+    if (role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

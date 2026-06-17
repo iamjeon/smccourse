@@ -3,10 +3,51 @@
 @tailwind utilities;
 
 /*
-  Brand tokens — "Liquidity Lab" dark, trading-grade palette.
-  Documented in BRAND.md. The app is dark-first; tokens live on :root.
+  Brand tokens — "Liquidity Lab". Light is the default (:root); dark is applied via
+  the `.dark` class on <html> (set by the no-flash script in layout). See BRAND.md.
 */
 :root {
+  --background: #f5f7fa;
+  --foreground: #0d1117;
+
+  --card: #ffffff;
+  --card-foreground: #0d1117;
+
+  --popover: #ffffff;
+  --popover-foreground: #0d1117;
+
+  /* Deeper teal for AA contrast on light surfaces */
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef1f6;
+  --secondary-foreground: #0d1117;
+
+  --muted: #eef1f6;
+  --muted-foreground: #586173;
+
+  --accent: #eef1f6;
+  --accent-foreground: #0d1117;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e3e7ee;
+  --input: #e3e7ee;
+  --ring: #0d9488;
+
+  /* Trading-semantic colors (chart engine) */
+  --bull: #16a34a;
+  --bear: #e11d48;
+  --liquidity: #d97706;
+  --zone: #6366f1;
+  --gold: #d97706;
+
+  --chart-bg: #f8fafc;
+  --radius: 0.75rem;
+}
+
+.dark {
   --background: #0a0d14;
   --foreground: #e8ebf2;
 
@@ -16,7 +57,7 @@
   --popover: #0f141d;
   --popover-foreground: #e8ebf2;
 
-  /* Electric teal — "money up" energy, primary CTA/brand */
+  /* Electric teal — "money up" energy */
   --primary: #2de0b6;
   --primary-foreground: #04150f;
 
@@ -36,14 +77,13 @@
   --input: #222a38;
   --ring: #2de0b6;
 
-  /* Trading-semantic colors (chart engine) */
   --bull: #22c55e;
   --bear: #f0506e;
   --liquidity: #f5b82e;
   --zone: #6366f1;
   --gold: #f5b82e;
 
-  --radius: 0.75rem;
+  --chart-bg: #0c1018;
 }
 
 @layer base {
@@ -82,8 +122,115 @@
   }
 }
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 32%, transparent);
+    color: var(--foreground);
+  }
+  /* Refined thin scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 9999px;
+    border: 3px solid var(--background);
+  }
+}
+
+@layer utilities {
+  /* Layered, premium depth shadows */
+  .shadow-elevated {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.4),
+      0 10px 30px -10px rgba(0, 0, 0, 0.55),
+      0 30px 70px -25px rgba(0, 0, 0, 0.65);
+  }
+  .shadow-card {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 12px 34px -18px rgba(0, 0, 0, 0.7);
+  }
+  /* Accent glow */
+  .glow-accent {
+    box-shadow: 0 0 90px -20px color-mix(in oklab, var(--primary) 65%, transparent);
+  }
+
+  /* Radial spotlight backdrops */
+  .bg-spotlight {
+    background:
+      radial-gradient(
+        60% 50% at 50% -5%,
+        color-mix(in oklab, var(--primary) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 45% at 85% 5%,
+        color-mix(in oklab, var(--zone) 14%, transparent),
+        transparent 70%
+      );
+  }
+  .bg-glow-bottom {
+    background: radial-gradient(
+      50% 60% at 50% 110%,
+      color-mix(in oklab, var(--primary) 18%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* Subtle film grain to prevent gradient banding */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Gradient text for hero emphasis */
+  .text-gradient {
+    background-image: linear-gradient(
+      120deg,
+      var(--foreground) 20%,
+      var(--primary) 70%,
+      var(--gold)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Glassmorphism panel */
+  .glass {
+    background: color-mix(in oklab, var(--card) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  /* Gradient hairline ring (use as a wrapping border) */
+  .ring-gradient {
+    background:
+      linear-gradient(var(--card), var(--card)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--primary) 50%, transparent),
+          color-mix(in oklab, var(--border) 60%, transparent) 40%,
+          color-mix(in oklab, var(--zone) 40%, transparent)
+        )
+        border-box;
+    border: 1px solid transparent;
+  }
+}
+
 /* Respect users who prefer less motion */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

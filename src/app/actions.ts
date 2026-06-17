@@ -29,6 +29,7 @@ export async function enroll(): Promise<ActionResult> {
     .upsert({ user_id: ctx.user.id }, { onConflict: "user_id" });
   if (error) return { ok: false, reason: error.message };
   revalidatePath("/dashboard");
+  revalidatePath("/academy");
   return { ok: true };
 }
 
@@ -48,7 +49,10 @@ export async function recordView(lessonSlug: string): Promise<ActionResult> {
     },
     { onConflict: "user_id,lesson_slug" },
   );
-  if (error) return { ok: false, reason: error.message };
+  if (error) {
+    console.error("[recordView] lesson_progress upsert failed:", error.message);
+    return { ok: false, reason: error.message };
+  }
   return { ok: true };
 }
 
@@ -71,8 +75,12 @@ export async function completeLesson(lessonSlug: string): Promise<ActionResult> 
     },
     { onConflict: "user_id,lesson_slug" },
   );
-  if (error) return { ok: false, reason: error.message };
+  if (error) {
+    console.error("[completeLesson] lesson_progress upsert failed:", error.message);
+    return { ok: false, reason: error.message };
+  }
   revalidatePath("/dashboard");
+  revalidatePath("/academy");
   revalidatePath(`/learn/${parsed.data}`);
   return { ok: true };
 }
@@ -105,9 +113,75 @@ export async function saveQuizAttempt(input: {
     total,
     answers,
   });
-  if (error) return { ok: false, reason: error.message };
+  if (error) {
+    console.error("[saveQuizAttempt] quiz_attempts insert failed:", error.message);
+    return { ok: false, reason: error.message };
+  }
 
-  if (score / total >= 0.7) await completeLesson(lessonSlug);
+  // Pass requires a perfect score; only then is the lesson marked complete.
+  // Propagate a completion failure instead of silently swallowing it.
+  if (score === total) {
+    const done = await completeLesson(lessonSlug);
+    if (!done.ok) return { ok: false, reason: done.reason };
+  }
   revalidatePath("/dashboard");
+  revalidatePath("/academy");
+  return { ok: true };
+}
+
+const EXAM_SLUG = "final-exam";
+const examSchema = z.object({
+  score: z.number().int().min(0),
+  total: z.number().int().min(1),
+  answers: z.record(z.string(), z.string()),
+});
+
+/**
+ * Save the final-exam attempt. The exam isn't a real lesson, so it bypasses the
+ * getLesson() check and records under the reserved `final-exam` slug (no migration:
+ * quiz_attempts.lesson_slug and lesson_progress.lesson_slug are plain text). The exam's
+ * mastery loop only finishes at a perfect score, so a finished attempt marks it passed.
+ */
+export async function saveExamAttempt(input: {
+  lessonSlug: string;
+  score: number;
+  total: number;
+  answers: Record<string, string>;
+}): Promise<ActionResult> {
+  const parsed = examSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, reason: "invalid" };
+  const ctx = await requireUser();
+  if ("error" in ctx) return { ok: false, reason: ctx.error };
+
+  const { score, total, answers } = parsed.data;
+  const { error } = await ctx.supabase.from("quiz_attempts").insert({
+    user_id: ctx.user.id,
+    lesson_slug: EXAM_SLUG,
+    score,
+    total,
+    answers,
+  });
+  if (error) {
+    console.error("[saveExamAttempt] quiz_attempts insert failed:", error.message);
+    return { ok: false, reason: error.message };
+  }
+
+  if (score === total) {
+    const now = new Date().toISOString();
+    const { error: progErr } = await ctx.supabase.from("lesson_progress").upsert(
+      {
+        user_id: ctx.user.id,
+        lesson_slug: EXAM_SLUG,
+        status: "completed",
+        completed_at: now,
+        last_viewed_at: now,
+      },
+      { onConflict: "user_id,lesson_slug" },
+    );
+    if (progErr) return { ok: false, reason: progErr.message };
+  }
+  revalidatePath("/dashboard");
+  revalidatePath("/academy");
+  revalidatePath("/exam");
   return { ok: true };
 }
