@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /** A polished browser/app window mockup used to present the product in the hero. */
 export function BrowserFrame({
   children,
-  url = "smccourse.app",
+  url = "freesmartmoneycourse.online",
   className,
 }: {
   children: ReactNode;

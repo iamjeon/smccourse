@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { brand } from "@/lib/brand";
+import { siteUrl } from "@/lib/supabase/env";
 import { LocaleProvider } from "@/components/locale-provider";
 import { ThemeProvider, themeScript } from "@/components/theme-provider";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -29,7 +31,20 @@ export const metadata: Metadata = {
   },
   description: brand.description,
   applicationName: brand.name,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
+  keywords: [
+    "Smart Money Concepts",
+    "SMC",
+    "learn Smart Money Concepts free",
+    "free SMC course",
+    "free trading course",
+    "order block",
+    "fair value gap",
+    "liquidity",
+    "market structure",
+    "ICT concepts",
+    "Taglish trading course",
+  ],
   icons: {
     icon: "/icon.svg",
     apple: "/logo.png",
@@ -65,6 +80,26 @@ export default function RootLayout({
         className={`${sans.variable} ${display.variable} ${mono.variable} font-sans min-h-dvh`}
       >
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <JsonLd
+          data={[
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: brand.name,
+              url: siteUrl,
+              logo: `${siteUrl}/logo.png`,
+              description: brand.description,
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: brand.name,
+              url: siteUrl,
+              description: brand.description,
+              inLanguage: ["en", "tl"],
+            },
+          ]}
+        />
         <ThemeProvider>
           <LocaleProvider>{children}</LocaleProvider>
           <Toaster

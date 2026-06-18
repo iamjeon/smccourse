@@ -36,13 +36,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Gate the learning area behind auth.
+  // Gate only per-user / personalized areas behind auth. Lesson content, the course
+  // hub, the glossary and the calculator are PUBLIC so search engines and AI crawlers
+  // can read them (the actual SEO/GEO value). Saving progress, quizzes, journal,
+  // community, exam, and the certificate still require an account.
   const protectedPrefixes = [
     "/dashboard",
-    "/academy",
-    "/learn",
-    "/courses",
-    "/tools",
+    "/tools/journal",
     "/admin",
     "/community",
     "/exam",

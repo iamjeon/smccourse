@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://smccourse.app";
+import { siteUrl } from "@/lib/supabase/env";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,9 +7,20 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard", "/admin", "/api/"],
+        // Per-user / gated areas with no SEO value (they redirect to /login anyway).
+        disallow: [
+          "/dashboard",
+          "/admin",
+          "/api/",
+          "/auth/",
+          "/tools/journal",
+          "/community",
+          "/exam",
+          "/certificate",
+        ],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

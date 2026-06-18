@@ -6,6 +6,38 @@ something new.
 
 ---
 
+## 2026-06-18 — SEO/GEO: public lesson content + custom domain (freesmartmoneycourse.online)
+Strategic decision to make the course **publicly readable** so search engines and AI
+engines can index/cite it (the actual SEO/GEO value). Target keyword: "Learn Smart Money
+Concepts free". Honest framing: top-10 is achievable but needs months + off-page links;
+no guarantees.
+
+- **Indexability (the unlock):** `src/lib/supabase/middleware.ts` now gates ONLY
+  per-user areas (`/dashboard`, `/tools/journal`, `/admin`, `/community`, `/exam`,
+  `/certificate`). Lesson content (`/learn/*`), the course hub (`/academy`, `/courses/*`),
+  glossary and calculator are PUBLIC. Reading is public; **saving** (progress, quizzes,
+  journal, chat, certificate) still requires a Supabase account — that's how users are
+  identified, unchanged.
+- **Anonymous-safe UI:** `AppShell` is auth-aware (public nav + "Sign in to save progress"
+  instead of "Sign out" when logged out). `CourseView` gets `unlockAll` for signed-out
+  visitors so all 23 lessons are crawlable links (signed-in learners keep the sequential
+  quiz-gate). `LessonView` shows a sign-in CTA for the quiz and unlocks "next" for
+  anonymous readers.
+- **Structured data (GEO + rich results):** new `src/components/seo/json-ld.tsx`.
+  Organization + WebSite in root layout; Course + FAQPage on landing; per-lesson
+  LearningResource + BreadcrumbList on `/learn/*`. All kept faithful to visible content.
+- **Metadata:** per-lesson `description` + canonical + OG (`learn/[slug]/page.tsx`);
+  `keywords` on root. `sitemap.ts`/`robots.ts` now use a single `siteUrl` source and list
+  only public pages; gated paths disallowed in robots.
+- **Domain migration:** canonical domain is now **freesmartmoneycourse.online** (was the
+  `smccourse.vercel.app` default / `smccourse.app` placeholder). `siteUrl` fallback in
+  `src/lib/supabase/env.ts` updated; all SEO files derive from it. BrowserFrame mock + env
+  example updated. **Manual steps still required by owner:** registrar DNS (A @ →
+  76.76.21.21, CNAME www → cname.vercel-dns.com), add domain in Vercel, set
+  `NEXT_PUBLIC_SITE_URL=https://freesmartmoneycourse.online` in Vercel prod, and add the new
+  domain to Supabase Auth → URL Configuration (Site URL + redirect allowlist) or magic-link
+  / Google sign-in breaks.
+
 ## 2026-06-18 — Multi-layer caching architecture (scale to 5K on free tier)
 Implemented a 5-layer caching architecture to eliminate server-side DB connections for
 reads. Developer term: **Multi-Layer Caching Architecture** / **Performance Engineering**.

@@ -11,6 +11,7 @@ import {
   Calculator,
   GraduationCap,
   Home,
+  LogIn,
   LogOut,
   Menu,
   MessageCircle,
@@ -36,7 +37,9 @@ import type { Locale } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 type LT = { en: string; tl: string };
-type NavItem = { href?: string; action?: "notes"; icon: LucideIcon; label: LT };
+// `public` items are visible to signed-out visitors (lessons/glossary/calculator are
+// publicly readable for SEO). Everything else is hidden until the user signs in.
+type NavItem = { href?: string; action?: "notes"; icon: LucideIcon; label: LT; public?: boolean };
 type NavGroup = { label: LT; items: NavItem[] };
 
 const NAV: NavGroup[] = [
@@ -44,15 +47,15 @@ const NAV: NavGroup[] = [
     label: { en: "Learn", tl: "Mag-aral" },
     items: [
       { href: "/dashboard", icon: Home, label: { en: "Dashboard", tl: "Dashboard" } },
-      { href: "/academy", icon: GraduationCap, label: { en: "Academy", tl: "Academy" } },
+      { href: "/academy", icon: GraduationCap, label: { en: "Academy", tl: "Academy" }, public: true },
     ],
   },
   {
     label: { en: "Tools", tl: "Mga tool" },
     items: [
-      { href: "/tools/calculator", icon: Calculator, label: { en: "Risk calculator", tl: "Risk calculator" } },
+      { href: "/tools/calculator", icon: Calculator, label: { en: "Risk calculator", tl: "Risk calculator" }, public: true },
       { href: "/tools/journal", icon: NotebookPen, label: { en: "Journal", tl: "Journal" } },
-      { href: "/tools/glossary", icon: BookA, label: { en: "Glossary", tl: "Glossary" } },
+      { href: "/tools/glossary", icon: BookA, label: { en: "Glossary", tl: "Glossary" }, public: true },
       { href: "/certificate", icon: Award, label: { en: "Certificate", tl: "Certificate" } },
     ],
   },
@@ -85,6 +88,7 @@ function isActive(pathname: string, href: string): boolean {
 function SidebarNav({
   pathname,
   locale,
+  authed,
   admin,
   onNavigate,
   onOpenNotes,
@@ -92,18 +96,25 @@ function SidebarNav({
 }: {
   pathname: string;
   locale: Locale;
+  authed: boolean;
   admin: boolean;
   onNavigate: () => void;
   onOpenNotes: () => void;
   onSignOut: () => void;
 }) {
   const tl = locale === "tl";
-  const groups = admin
+  const fullGroups = admin
     ? [
         ...NAV,
         { label: { en: "Manage", tl: "Pamahalaan" }, items: [ADMIN_ITEM] },
       ]
     : NAV;
+  // Signed-out visitors only see publicly accessible destinations.
+  const groups = authed
+    ? fullGroups
+    : NAV.map((g) => ({ ...g, items: g.items.filter((i) => i.public) })).filter(
+        (g) => g.items.length > 0,
+      );
 
   const itemClass = (active: boolean) =>
     cn(
@@ -116,7 +127,7 @@ function SidebarNav({
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 shrink-0 items-center px-5">
-        <Link href="/dashboard" onClick={onNavigate} aria-label="Dashboard">
+        <Link href={authed ? "/dashboard" : "/"} onClick={onNavigate} aria-label={authed ? "Dashboard" : "Home"}>
           <Logo />
         </Link>
       </div>
@@ -171,14 +182,25 @@ function SidebarNav({
           <ThemeToggle />
           <LocaleToggle />
         </div>
-        <button
-          type="button"
-          onClick={onSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
-        >
-          <LogOut className="size-[18px] shrink-0" />
-          {tl ? "Mag-logout" : "Sign out"}
-        </button>
+        {authed ? (
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="size-[18px] shrink-0" />
+            {tl ? "Mag-logout" : "Sign out"}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-3 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:opacity-90"
+          >
+            <LogIn className="size-[18px] shrink-0" />
+            {tl ? "Mag-sign in para i-save ang progreso" : "Sign in to save progress"}
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -192,17 +214,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const tl = locale === "tl";
 
   const [admin, setAdmin] = useState(false);
+  const [authed, setAuthed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
     if (!supabase) return;
-    const read = (session: Session | null) =>
+    const read = (session: Session | null) => {
+      setAuthed(!!session?.user);
       setAdmin(
         (session?.user?.app_metadata as { role?: string } | undefined)?.role ===
           "admin",
       );
+    };
     supabase.auth.getSession().then(({ data }) => read(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       read(session),
@@ -223,6 +248,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navProps = {
     pathname,
     locale,
+    authed,
     admin,
     onOpenNotes: () => setNotesOpen(true),
     onSignOut: signOut,
@@ -245,18 +271,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <Menu className="size-5" />
         </button>
-        <Link href="/dashboard" aria-label="Dashboard" className="flex items-center">
+        <Link href={authed ? "/dashboard" : "/"} aria-label={authed ? "Dashboard" : "Home"} className="flex items-center">
           <LogoMark />
         </Link>
         <div className="flex-1" />
-        <button
-          type="button"
-          onClick={() => setNotesOpen(true)}
-          aria-label={tl ? "Mga note" : "Notes"}
-          className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <StickyNote className="size-5" />
-        </button>
+        {authed && (
+          <button
+            type="button"
+            onClick={() => setNotesOpen(true)}
+            aria-label={tl ? "Mga note" : "Notes"}
+            className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <StickyNote className="size-5" />
+          </button>
+        )}
         <ThemeToggle />
       </header>
 

@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Lock,
   ListChecks,
+  LogIn,
 } from "lucide-react";
 import type { Lesson } from "@/content/schema";
 import { t } from "@/content/schema";
@@ -34,6 +35,7 @@ export function LessonView({
   const { locale } = useLocale();
   const tl = locale === "tl";
   const [passed, setPassed] = useState(false);
+  const [authed, setAuthed] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
 
   // Record the view + load completion (keeps the page static; per-user state client-side).
@@ -42,6 +44,7 @@ export function LessonView({
     const supabase = createClient();
     if (!supabase) return;
     supabase.auth.getUser().then(({ data }) => {
+      setAuthed(!!data.user);
       if (!data.user) return;
       supabase
         .from("lesson_progress")
@@ -54,6 +57,10 @@ export function LessonView({
         });
     });
   }, [lesson.slug]);
+
+  // Signed-out readers (incl. crawlers) browse freely; the quiz/next gate only
+  // applies to signed-in learners.
+  const nextUnlocked = !authed || passed;
 
   return (
     <article className="mx-auto max-w-3xl">
@@ -93,7 +100,31 @@ export function LessonView({
 
       {/* Quiz gate */}
       <div className="mt-10 border-t border-border pt-8">
-        {!showQuiz ? (
+        {!authed ? (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <div className="flex items-start gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <ListChecks className="size-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  {tl ? "Subukan ang sarili gamit ang quiz" : "Test yourself with the quiz"}
+                </h2>
+                <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+                  {tl
+                    ? "Libre ang lahat. Mag-sign in para sagutan ang quiz, i-save ang progreso, at i-unlock ang certificate. Email lang ang kailangan."
+                    : "Everything is free. Sign in to take the quiz, save your progress, and unlock your certificate. Just your email, no password."}
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href={`/login?next=/learn/${lesson.slug}`}>
+                    <LogIn className="size-4" />
+                    {tl ? "Mag-sign in nang libre" : "Sign in free"}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : !showQuiz ? (
           <div className="rounded-xl border border-border bg-card p-6 shadow-card">
             <div className="flex items-start gap-4">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -157,7 +188,7 @@ export function LessonView({
         )}
 
         {next ? (
-          passed ? (
+          nextUnlocked ? (
             <Link
               href={`/learn/${next.slug}`}
               className="group flex flex-col rounded-lg border border-border bg-card p-4 text-right transition-all duration-200 hover:border-primary/50 hover:shadow-sm"

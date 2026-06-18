@@ -20,8 +20,10 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { brand } from "@/lib/brand";
+import { siteUrl } from "@/lib/supabase/env";
 import { useLocale } from "@/components/locale-provider";
 import { SiteHeader } from "@/components/site-header";
+import { JsonLd } from "@/components/seo/json-ld";
 import dynamic from "next/dynamic";
 
 const SmcChart = dynamic(
@@ -33,7 +35,12 @@ import { Reveal } from "@/components/marketing/reveal";
 import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { getCourseCurriculum, totalLessons } from "@/content/course";
+import {
+  getCourse,
+  getCourseCurriculum,
+  getCourseLessons,
+  totalLessons,
+} from "@/content/course";
 import { t, type ChartSpec } from "@/content/schema";
 
 const previewChart: ChartSpec = {
@@ -240,8 +247,48 @@ export default function Home() {
     },
   ];
 
+  // ── Structured data (kept faithful to the visible page) ──────────────────────
+  const smc = getCourse("smc");
+  const totalMinutes = getCourseLessons("smc").reduce(
+    (sum, l) => sum + l.estMinutes,
+    0,
+  );
+  const courseLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: smc?.title.en ?? brand.name,
+    description: smc?.description.en ?? brand.description,
+    url: `${siteUrl}/academy`,
+    inLanguage: ["en", "tl"],
+    isAccessibleForFree: true,
+    educationalLevel: "Beginner to Expert",
+    provider: { "@type": "Organization", name: brand.name, url: siteUrl },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      category: "Free",
+      availability: "https://schema.org/InStock",
+    },
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "online",
+      courseWorkload: `PT${Math.max(1, Math.round(totalMinutes / 60))}H`,
+    },
+  };
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q.en,
+      acceptedAnswer: { "@type": "Answer", text: f.a.en },
+    })),
+  };
+
   return (
     <>
+      <JsonLd data={[courseLd, faqLd]} />
       <SiteHeader />
 
       {/* ─────────── Hero ─────────── */}
@@ -307,7 +354,7 @@ export default function Home() {
           {/* Product preview */}
           <Reveal delay={0.2} className="relative">
             <div className="pointer-events-none absolute -inset-6 -z-10 bg-glow-bottom" />
-            <BrowserFrame url="smccourse.app/learn/fair-value-gap">
+            <BrowserFrame url="freesmartmoneycourse.online/learn/fair-value-gap">
               <div className="p-4 sm:p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-display text-sm font-semibold">
