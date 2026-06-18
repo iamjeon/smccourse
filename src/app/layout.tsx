@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     "ICT concepts",
     "Taglish trading course",
   ],
+  verification: {
+    google: "HMED78kLK3KRTvvH6uiMEmxGfkHTm3BaxodO8FCLXek",
+  },
   icons: {
     icon: "/icon.svg",
     apple: "/logo.png",
