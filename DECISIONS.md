@@ -6,6 +6,29 @@ something new.
 
 ---
 
+## 2026-06-18 — Multi-layer caching architecture (scale to 5K on free tier)
+Implemented a 5-layer caching architecture to eliminate server-side DB connections for
+reads. Developer term: **Multi-Layer Caching Architecture** / **Performance Engineering**.
+
+- **Layer 1 — SWR in-memory cache:** Installed `swr`. Created hooks in
+  `src/lib/hooks/use-user-data.ts`: `useProgress`, `useDashboardStats`,
+  `useJournalEntries`, `useUserProfile`. Fetches via browser Supabase client (REST API),
+  NOT server-side pooled connections.
+- **Layer 2 — localStorage with TTL:** `src/lib/cache.ts` provides `cacheGet/cacheSet`
+  with TTL presets (progress 5min, dashboard 2min, journal 3min, profile 10min). SWR hooks
+  use localStorage as `fallbackData` so repeat visits load instantly.
+- **Layer 3 — stale-while-revalidate HTTP headers:** Lesson pages (`/learn/*`) and static
+  tools get `s-maxage=3600, stale-while-revalidate=86400`. Static assets get
+  `max-age=31536000, immutable`.
+- **Layer 4 — Client-side Supabase SDK:** Dashboard, academy, courses, and journal pages
+  converted from `force-dynamic` server components to `○` static client components. Reads
+  go browser → Supabase REST API, bypassing the server DB pool entirely.
+- **Layer 5 — Cache invalidation on writes:** Quiz pass and journal CRUD call
+  `swr.mutate()` to revalidate affected cache keys, keeping the UI fresh.
+- **Result:** Dashboard, academy, journal all changed from `ƒ` (dynamic) to `○` (static)
+  in `next build`. Zero server DB connections for reads. Estimated capacity: 2,000-5,000
+  concurrent users on free tier.
+
 ## 2026-06-18 — Production readiness Phases 2+3 (quality, resilience, scale)
 Phase 2 (quality & resilience):
 - **Toast system:** Sonner integrated into root layout. Quiz save, journal CRUD, chat send

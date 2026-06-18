@@ -25,6 +25,7 @@ import {
   updateJournalEntry,
 } from "@/app/journal-actions";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { cn } from "@/lib/utils";
 
 export type JournalEntry = {
@@ -170,6 +171,8 @@ export function JournalView({ entries }: { entries: JournalEntry[] }) {
       }
       toast.success(editing === "new" ? "Trade logged" : "Trade updated");
       setEditing(null);
+      void mutate("journal-entries");
+      void mutate("dashboard-stats");
       router.refresh();
     });
   }
@@ -177,8 +180,13 @@ export function JournalView({ entries }: { entries: JournalEntry[] }) {
   function remove(id: string) {
     startTransition(async () => {
       const res = await deleteJournalEntry({ id });
-      if (res.ok) toast.success("Trade deleted");
-      else toast.error(res.reason ?? "Could not delete");
+      if (res.ok) {
+        toast.success("Trade deleted");
+        void mutate("journal-entries");
+        void mutate("dashboard-stats");
+      } else {
+        toast.error(res.reason ?? "Could not delete");
+      }
       router.refresh();
     });
   }

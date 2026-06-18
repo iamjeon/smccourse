@@ -36,6 +36,8 @@ Supabase (Auth + Postgres + RLS) · Vercel (TLS + CDN). Details:
 - `src/content/lessons/` — per-lesson typed content (EN + TL) + chart specs + quiz.
 - `src/content/glossary.ts` — SMC glossary (bilingual, faithful to lessons).
 - `src/lib/supabase/` — client/server/middleware helpers + `require-user` (`requireUser`/`requireAdmin`).
+- `src/lib/hooks/use-user-data.ts` — SWR hooks for client-side data (progress, dashboard, journal, profile).
+- `src/lib/cache.ts` — localStorage cache with TTL (Layer 2 of caching architecture).
 - `src/lib/auth.ts` — admin role check (`isAdmin`; role = `app_metadata` JWT claim).
 - `src/lib/brand.ts` — brand name/tagline. Colors: [BRAND.md](BRAND.md).
 - `supabase/migrations/` — DB schema + RLS (`0002` notes/chat/journal/announcements + admin;
@@ -59,6 +61,7 @@ verify (`check:coverage`, `validate:charts`, `typecheck`, `lint`) → review. Fu
 - `skills/smc-chart/` — accurate chart-authoring rules.
 - `skills/smc-design/` — brand + UI/UX + app-shell guardrails for any new screen.
 - `skills/smc-smoke/` — the debug + smoke-test procedure (run after every change).
+- `skills/smc-perf/` — multi-layer caching architecture + scalability rules.
 - `skills/prompt-helper/` — turns the owner's rough idea into a clear prompt.
 
 ## Always smoke-test after a change (IMPORTANT)

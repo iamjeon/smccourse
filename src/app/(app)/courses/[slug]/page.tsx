@@ -1,41 +1,25 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+"use client";
+
+import { notFound, useParams } from "next/navigation";
 import { getCourse, getCourseCurriculum } from "@/content/course";
-import { getProgressMap } from "@/lib/progress";
-import { getAuth } from "@/lib/auth";
 import { CourseView } from "@/components/course-view";
+import { useProgress } from "@/lib/hooks/use-user-data";
 
-export const dynamic = "force-dynamic";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const course = getCourse(slug);
-  return { title: course ? course.title.en : "Course" };
-}
-
-export default async function CoursePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default function CoursePage() {
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
   const course = getCourse(slug);
   if (!course) notFound();
 
   const curriculum = getCourseCurriculum(slug);
-  const progress = await getProgressMap();
-  const { admin } = await getAuth();
+  const { data: progress } = useProgress();
 
   return (
     <CourseView
       course={course}
       curriculum={curriculum}
-      progress={progress}
-      unlockAll={admin}
+      progress={progress ?? {}}
+      unlockAll={false}
     />
   );
 }

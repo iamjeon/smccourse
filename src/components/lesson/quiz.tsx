@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Trophy, ArrowRight, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import type { QuizQuestion } from "@/content/schema";
 import { t } from "@/content/schema";
 import { useLocale } from "@/components/locale-provider";
@@ -79,6 +80,8 @@ export function Quiz({
     onPassed();
     if (res.ok) {
       toast.success(tl ? "Na-save ang progreso!" : "Progress saved!");
+      void mutate("progress");
+      void mutate("dashboard-stats");
     }
     if (!res.ok) {
       const reason = res.reason ?? "";

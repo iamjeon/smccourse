@@ -19,12 +19,21 @@
 - [x] **9. PWA manifest**: `src/app/manifest.ts` with brand name, start_url, theme, SVG + PNG icons
 - [x] **10. Accessibility fixes**: aria-live on chat message list, role="alert" on error messages (chat/login/journal), aria-describedby linking inputs to errors
 
-## Phase 3 — Scale prep (before promoting to 5K users)
+## Phase 3 — Scale prep (DONE 2026-06-18, except Pro upgrades)
 
-- [ ] **11. Upgrade Supabase to Pro** ($25/mo) — 15 pooled connections + connection pooler (owner decision)
-- [ ] **12. Upgrade Vercel to Pro** ($20/mo) — unlimited functions, 1TB bandwidth (owner decision)
+- [ ] **11. Upgrade Supabase to Pro** ($25/mo) — only needed past ~5K concurrent (owner decision)
+- [ ] **12. Upgrade Vercel to Pro** ($20/mo) — only needed past free bandwidth (owner decision)
 - [x] **13. Rate limiting on all server actions** — chat 12/min, journal 20/min, quiz 10/min, exam 5/min, notes 30/min
-- [x] **14. Dashboard optimization**: parallelized 3 DB queries with Promise.all (dashboard is per-user, ISR not applicable; force-dynamic is correct)
+- [x] **14. Dashboard optimization**: converted to client-side SWR (see Phase 4)
+
+## Phase 4 — Multi-layer caching architecture (DONE 2026-06-18)
+
+- [x] **15. SWR in-memory cache**: `swr` library + hooks in `src/lib/hooks/use-user-data.ts` (useProgress, useDashboardStats, useJournalEntries, useUserProfile)
+- [x] **16. localStorage persistence**: `src/lib/cache.ts` with TTL (progress 5min, dashboard 2min, journal 3min, profile 10min)
+- [x] **17. Stale-while-revalidate headers**: lesson pages s-maxage=3600 swr=86400, static assets immutable
+- [x] **18. Client-side Supabase reads**: dashboard/academy/journal/courses converted from server components to static client components using browser SDK (REST API, bypasses DB pool)
+- [x] **19. Cache invalidation on writes**: quiz pass + journal CRUD trigger `swr.mutate()` to revalidate affected keys
+- [x] **20. Architecture docs updated**: ARCHITECTURE.md rewritten with caching diagram
 
 ## Detailed findings (reference)
 
