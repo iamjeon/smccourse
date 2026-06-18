@@ -1,6 +1,6 @@
 ---
 name: smc-smoke
-description: The debug + smoke-test procedure to run after ANY code or schema change in Liquidity Lab, before reporting work as done. Defines the exact checks (typecheck, lint, validate:charts, check:coverage, production build), the known-benign warnings to ignore, the Windows .next cache pitfall, runtime route checks, and the DB security-advisor step after migrations. Use whenever you finish editing the codebase, when asked to "smoke test", "debug", "verify the build", or "make sure nothing broke".
+description: The debug + smoke-test procedure to run after ANY code or schema change in SMC Course, before reporting work as done. Defines the exact checks (typecheck, lint, validate:charts, check:coverage, production build), the known-benign warnings to ignore, the Windows .next cache pitfall, runtime route checks, and the DB security-advisor step after migrations. Use whenever you finish editing the codebase, when asked to "smoke test", "debug", "verify the build", or "make sure nothing broke".
 ---
 
 # SMC Smoke Test — prove the change didn't break anything

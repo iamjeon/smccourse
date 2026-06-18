@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { requireUser } from "@/lib/supabase/require-user";
+import { checkActionRate } from "@/lib/action-rate-limit";
 
 const content = z.string().max(10_000);
 const slug = z.string().max(80).optional().nullable();
@@ -25,6 +26,8 @@ export async function createNote(input: {
 }): Promise<NoteResult> {
   const ctx = await requireUser();
   if ("error" in ctx) return { ok: false, reason: ctx.error };
+  if (!checkActionRate(ctx.user.id, "notes", 30, 60_000))
+    return { ok: false, reason: "Too many notes. Try again in a moment." };
   const parsed = content.safeParse(input.content ?? "");
   const lesson = slug.safeParse(input.lessonSlug ?? null);
   if (!parsed.success || !lesson.success) return { ok: false, reason: "invalid" };

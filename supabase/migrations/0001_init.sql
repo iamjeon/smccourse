@@ -1,5 +1,5 @@
 -- ────────────────────────────────────────────────────────────────────────────
--- Liquidity Lab — initial schema
+-- SMC Course — initial schema
 -- Run this in the Supabase SQL editor (or `supabase db push`).
 -- Only PER-USER data lives here; course content lives in the app code.
 -- Every table is protected by Row Level Security: a user can only see/edit own rows.

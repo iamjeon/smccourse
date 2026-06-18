@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/locale-provider";
 import { sendChatMessage } from "@/app/chat-actions";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type ChatMessage = {
@@ -316,7 +317,9 @@ export function CommunityChat() {
 
     if (!res.ok) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
-      setError(res.reason ?? "Could not send.");
+      const reason = res.reason ?? "Could not send.";
+      setError(reason);
+      toast.error(reason);
       setText(value);
       return;
     }
@@ -398,6 +401,8 @@ export function CommunityChat() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
+        aria-live="polite"
+        aria-label="Chat messages"
         className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl border border-border bg-card/40 p-3"
       >
         {loading ? (
@@ -515,7 +520,7 @@ export function CommunityChat() {
 
       {/* Composer */}
       <div className="pt-3">
-        {error && <p className="mb-2 text-xs text-destructive">{error}</p>}
+        {error && <p id="chat-error" role="alert" className="mb-2 text-xs text-destructive">{error}</p>}
         <form
           className="flex items-center gap-2"
           onSubmit={(e) => {
@@ -537,6 +542,7 @@ export function CommunityChat() {
                   : "Type a message"
             }
             aria-label="Message"
+            aria-describedby={error ? "chat-error" : undefined}
             disabled={sending}
           />
           <Button

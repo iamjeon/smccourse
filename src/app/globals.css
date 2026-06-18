@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
-  Brand tokens — "Liquidity Lab". Light is the default (:root); dark is applied via
+  Brand tokens — "SMC Course". Light is the default (:root); dark is applied via
   the `.dark` class on <html> (set by the no-flash script in layout). See BRAND.md.
 */
 :root {
@@ -223,6 +223,45 @@
         )
         border-box;
     border: 1px solid transparent;
+  }
+}
+
+@layer utilities {
+  /* Shimmer sweep for hero badges / accent elements */
+  .animate-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+  }
+
+  /* Subtle pulsing glow for primary CTAs */
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px -8px color-mix(in oklab, var(--primary) 40%, transparent); }
+    50% { box-shadow: 0 0 40px -4px color-mix(in oklab, var(--primary) 60%, transparent); }
+  }
+
+  /* Horizontal connecting line for step sequences */
+  .step-connector {
+    position: relative;
+  }
+  .step-connector::after {
+    content: "";
+    position: absolute;
+    top: 2rem;
+    left: calc(100% + 0.25rem);
+    width: calc(100% - 2rem);
+    height: 1px;
+    background: linear-gradient(90deg, var(--primary), transparent);
+    opacity: 0.3;
+  }
+  .step-connector:last-child::after {
+    display: none;
   }
 }
 

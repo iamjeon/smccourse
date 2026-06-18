@@ -12,16 +12,19 @@ const calloutStyles = {
     icon: Lightbulb,
     cls: "border-primary/30 bg-primary/5",
     iconCls: "text-primary",
+    iconBg: "bg-primary/10",
   },
   warning: {
     icon: AlertTriangle,
     cls: "border-destructive/30 bg-destructive/5",
     iconCls: "text-destructive",
+    iconBg: "bg-destructive/10",
   },
   key: {
     icon: KeyRound,
-    cls: "border-gold/30 bg-gold/5",
+    cls: "border-gold/30 bg-gold/5 shadow-sm shadow-gold/5",
     iconCls: "text-gold",
+    iconBg: "bg-gold/10",
   },
 } as const;
 
@@ -48,7 +51,7 @@ export function LessonContent({ blocks }: { blocks: Block[] }) {
           }
           case "paragraph":
             return (
-              <p key={i} className="leading-relaxed text-foreground/90">
+              <p key={i} className="leading-relaxed text-foreground/95">
                 {t(block.text, locale)}
               </p>
             );
@@ -56,7 +59,7 @@ export function LessonContent({ blocks }: { blocks: Block[] }) {
             return block.ordered ? (
               <ol
                 key={i}
-                className="list-decimal space-y-1.5 pl-5 leading-relaxed text-foreground/90 marker:text-primary"
+                className="list-decimal space-y-1.5 pl-5 leading-relaxed text-foreground/95 marker:text-primary"
               >
                 {block.items.map((it, j) => (
                   <li key={j}>{t(it, locale)}</li>
@@ -65,7 +68,7 @@ export function LessonContent({ blocks }: { blocks: Block[] }) {
             ) : (
               <ul
                 key={i}
-                className="list-disc space-y-1.5 pl-5 leading-relaxed text-foreground/90 marker:text-primary"
+                className="list-disc space-y-1.5 pl-5 leading-relaxed text-foreground/95 marker:text-primary"
               >
                 {block.items.map((it, j) => (
                   <li key={j}>{t(it, locale)}</li>
@@ -82,14 +85,16 @@ export function LessonContent({ blocks }: { blocks: Block[] }) {
                 role="note"
               >
                 <div className="flex gap-3">
-                  <Icon className={cn("mt-0.5 size-5 shrink-0", s.iconCls)} />
+                  <div className={cn("mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md", s.iconBg)}>
+                    <Icon className={cn("size-4", s.iconCls)} />
+                  </div>
                   <div>
                     {block.title && (
                       <p className="mb-1 font-semibold text-foreground">
                         {t(block.title, locale)}
                       </p>
                     )}
-                    <p className="leading-relaxed text-foreground/90">
+                    <p className="leading-relaxed text-foreground/95">
                       {t(block.text, locale)}
                     </p>
                   </div>

@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { brand } from "@/lib/brand";
 import { LocaleProvider } from "@/components/locale-provider";
 import { ThemeProvider, themeScript } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const sans = Inter({
@@ -29,6 +30,23 @@ export const metadata: Metadata = {
   description: brand.description,
   applicationName: brand.name,
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  icons: {
+    icon: "/icon.svg",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: brand.name,
+    title: `${brand.name} · ${brand.tagline}`,
+    description: brand.description,
+    images: [{ url: "/logo.png", width: 640, height: 128, alt: brand.name }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${brand.name} · ${brand.tagline}`,
+    description: brand.description,
+    images: ["/logo.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -49,6 +67,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>
           <LocaleProvider>{children}</LocaleProvider>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              className: "!bg-card !text-card-foreground !border-border",
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

@@ -51,7 +51,7 @@ export function DashboardCourses({
             <Link
               key={course.slug}
               href={`/courses/${course.slug}`}
-              className="group rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
+              className="group rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-elevated/30"
             >
               <div className="flex items-start justify-between gap-3">
                 <span className="inline-flex rounded-full bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground">
@@ -95,7 +95,7 @@ export function DashboardCourses({
                   : tl
                     ? "Ipagpatuloy"
                     : "Continue"}
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
               </span>
             </Link>
           );

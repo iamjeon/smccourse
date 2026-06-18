@@ -56,17 +56,18 @@ function StatCard({
   sub?: string;
   tone?: "primary" | "bull" | "gold";
 }) {
+  const toneColor = tone === "bull" ? "bull" : tone === "gold" ? "gold" : "primary";
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="group rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-300 hover:border-border/80 hover:shadow-elevated/30">
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon
-          className={cn(
-            "size-4",
-            tone === "primary" && "text-primary",
-            tone === "bull" && "text-bull",
-            tone === "gold" && "text-gold",
-          )}
-        />
+        <div className={cn(
+          "flex size-7 items-center justify-center rounded-md transition-colors",
+          toneColor === "primary" && "bg-primary/10 text-primary",
+          toneColor === "bull" && "bg-bull/10 text-bull",
+          toneColor === "gold" && "bg-gold/10 text-gold",
+        )}>
+          <Icon className="size-3.5" />
+        </div>
         <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
       </div>
       <p className="mt-2 font-display text-2xl font-bold tracking-tight">{value}</p>
@@ -136,7 +137,7 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
       </p>
 
       {/* Course progress bar */}
-      <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-card">
+      <div className="mt-6 rounded-xl ring-gradient p-5 shadow-elevated">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="size-5 text-primary" />
@@ -275,7 +276,7 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                 <Link
                   key={row.lesson_slug}
                   href={`/learn/${row.lesson_slug}`}
-                  className="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent/50"
+                  className="group/row flex items-center gap-3 px-4 py-3 text-sm transition-all duration-200 hover:bg-accent/50 hover:pl-5"
                 >
                   {completed ? (
                     <CheckCircle2 className="size-4 shrink-0 text-bull" />
@@ -291,7 +292,7 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                       day: "numeric",
                     })}
                   </span>
-                  <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
+                  <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover/row:translate-x-1 group-hover/row:text-primary" />
                 </Link>
               );
             })}

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/supabase/require-user";
+import { checkActionRate } from "@/lib/action-rate-limit";
 
 const entrySchema = z.object({
   pair: z.string().trim().min(1).max(40),
@@ -41,6 +42,8 @@ export async function addJournalEntry(
 ): Promise<{ ok: boolean; reason?: string }> {
   const ctx = await requireUser();
   if ("error" in ctx) return { ok: false, reason: ctx.error };
+  if (!checkActionRate(ctx.user.id, "journal", 20, 60_000))
+    return { ok: false, reason: "Too many entries. Try again in a moment." };
   const parsed = entrySchema.safeParse(input);
   if (!parsed.success) return { ok: false, reason: "invalid" };
 

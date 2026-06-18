@@ -1,5 +1,5 @@
 -- ────────────────────────────────────────────────────────────────────────────
--- Liquidity Lab — community, notes, journal, announcements + admin access
+-- SMC Course — community, notes, journal, announcements + admin access
 -- Adds: notes (private), chat_messages + chat_bans (global chat, moderated),
 -- journal_entries (private), announcements (admin → all), and admin analytics RPCs.
 --

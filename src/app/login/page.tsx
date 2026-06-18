@@ -13,7 +13,8 @@ import { useLocale } from "@/components/locale-provider";
 function LoginInner() {
   const { locale } = useLocale();
   const params = useSearchParams();
-  const next = params.get("next") || "/dashboard";
+  const rawNext = params.get("next") || "/dashboard";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard";
   const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const [email, setEmail] = useState("");
@@ -104,6 +105,7 @@ function LoginInner() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={locale === "tl" ? "Email mo" : "you@email.com"}
+                aria-describedby={status === "error" || status === "unconfigured" ? "login-error" : undefined}
                 className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               <Button
@@ -135,13 +137,13 @@ function LoginInner() {
         )}
 
         {status === "error" && (
-          <p className="mt-4 flex items-center gap-2 text-sm text-destructive">
+          <p id="login-error" role="alert" className="mt-4 flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="size-4" />
             {error}
           </p>
         )}
         {status === "unconfigured" && (
-          <p className="mt-4 flex items-start gap-2 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+          <p id="login-error" role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
             {locale === "tl"
               ? "Hindi pa naka-connect ang sign-in. Idagdag ang Supabase keys sa .env.local (tingnan ang README)."

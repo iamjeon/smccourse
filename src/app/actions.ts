@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getLesson } from "@/content/course";
+import { checkActionRate } from "@/lib/action-rate-limit";
 
 type ActionResult = { ok: boolean; reason?: string };
 
@@ -104,6 +105,8 @@ export async function saveQuizAttempt(input: {
     return { ok: false, reason: "invalid" };
   const ctx = await requireUser();
   if ("error" in ctx) return { ok: false, reason: ctx.error };
+  if (!checkActionRate(ctx.user.id, "quiz", 10, 60_000))
+    return { ok: false, reason: "Too many attempts. Try again in a moment." };
 
   const { lessonSlug, score, total, answers } = parsed.data;
   const { error } = await ctx.supabase.from("quiz_attempts").insert({
@@ -152,6 +155,8 @@ export async function saveExamAttempt(input: {
   if (!parsed.success) return { ok: false, reason: "invalid" };
   const ctx = await requireUser();
   if ("error" in ctx) return { ok: false, reason: ctx.error };
+  if (!checkActionRate(ctx.user.id, "exam", 5, 60_000))
+    return { ok: false, reason: "Too many attempts. Try again in a moment." };
 
   const { score, total, answers } = parsed.data;
   const { error } = await ctx.supabase.from("quiz_attempts").insert({

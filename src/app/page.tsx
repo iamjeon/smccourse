@@ -10,6 +10,7 @@ import {
   ListChecks,
   Gift,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   TrendingUp,
   Smartphone,
@@ -21,11 +22,17 @@ import {
 import { brand } from "@/lib/brand";
 import { useLocale } from "@/components/locale-provider";
 import { SiteHeader } from "@/components/site-header";
-import { SmcChart } from "@/components/charts/SmcChart";
+import dynamic from "next/dynamic";
+
+const SmcChart = dynamic(
+  () => import("@/components/charts/SmcChart").then((m) => m.SmcChart),
+  { ssr: false },
+);
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/marketing/reveal";
 import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import { getCourseCurriculum, totalLessons } from "@/content/course";
 import { t, type ChartSpec } from "@/content/schema";
 
@@ -125,10 +132,10 @@ export default function Home() {
   }, [router]);
 
   const stats = [
-    { value: "5", label: { en: "Modules", tl: "Modules" } },
-    { value: String(totalLessons()), label: { en: "Lessons", tl: "Lessons" } },
-    { value: "100%", label: { en: "Free", tl: "Libre" } },
-    { value: "EN/TL", label: { en: "Bilingual", tl: "Bilingual" } },
+    { value: "5", label: { en: "Modules", tl: "Modules" }, icon: BookOpen },
+    { value: String(totalLessons()), label: { en: "Lessons", tl: "Lessons" }, icon: LineChart },
+    { value: "100%", label: { en: "Free", tl: "Libre" }, icon: Gift },
+    { value: "EN/TL", label: { en: "Bilingual", tl: "Bilingual" }, icon: Languages },
   ];
 
   const features = [
@@ -246,7 +253,7 @@ export default function Home() {
         <div className="container relative grid gap-12 py-16 sm:py-24 lg:grid-cols-[1.05fr_1fr] lg:items-center">
           <div>
             <Reveal>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <span className="animate-shimmer inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 <Sparkles className="size-3.5" />
                 {tl ? "Libreng SMC course · habambuhay" : "Free SMC course · forever"}
               </span>
@@ -300,7 +307,7 @@ export default function Home() {
           {/* Product preview */}
           <Reveal delay={0.2} className="relative">
             <div className="pointer-events-none absolute -inset-6 -z-10 bg-glow-bottom" />
-            <BrowserFrame url="liquiditylab.app/learn/fair-value-gap">
+            <BrowserFrame url="smccourse.app/learn/fair-value-gap">
               <div className="p-4 sm:p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-display text-sm font-semibold">
@@ -345,28 +352,37 @@ export default function Home() {
         </div>
 
         {/* Stats strip */}
-        <div className="container relative border-t border-border/70 py-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {stats.map((s, i) => (
-              <Reveal key={i} delay={i * 0.06}>
-                <div className="text-center">
-                  <div className="font-display text-2xl font-bold sm:text-3xl">
-                    {s.value}
+        <div className="container relative border-t border-border/70 py-8">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {stats.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <Reveal key={i} delay={i * 0.06}>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                      <Icon className="size-4 text-primary" />
+                    </div>
+                    <div className="font-display text-2xl font-bold sm:text-3xl">
+                      {s.value}
+                    </div>
+                    <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      {t(s.label, locale)}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t(s.label, locale)}
-                  </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ─────────── Features (bento) ─────────── */}
-      <section className="container py-20">
+      <section className="container py-24">
         <Reveal>
-          <h2 className="max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          <p className="text-sm font-medium uppercase tracking-wider text-primary">
+            {tl ? "Mga tampok" : "Features"}
+          </p>
+          <h2 className="mt-2 max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {tl
               ? "Lahat ng kailangan mo para matuto, nasa isang lugar."
               : "Everything you need to learn, in one place."}
@@ -375,20 +391,37 @@ export default function Home() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => {
             const Icon = f.icon;
+            const isHero = f.span;
             return (
               <Reveal
                 key={i}
                 delay={i * 0.05}
-                className={f.span ? "sm:col-span-2 lg:col-span-1 lg:row-span-2" : ""}
+                className={isHero ? "sm:col-span-2 lg:col-span-1 lg:row-span-2" : ""}
               >
-                <div className="group h-full rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40">
-                  <div className="inline-flex rounded-lg border border-border bg-secondary/50 p-2.5 text-primary transition-colors group-hover:bg-primary/10">
+                <div className={cn(
+                  "group h-full rounded-xl p-6 transition-all duration-300 hover:-translate-y-1",
+                  isHero
+                    ? "ring-gradient shadow-elevated hover:shadow-lg"
+                    : "border border-border bg-card shadow-card hover:border-primary/40 hover:shadow-elevated/30",
+                )}>
+                  <div className={cn(
+                    "inline-flex rounded-lg p-2.5 transition-colors",
+                    isHero
+                      ? "bg-primary/15 text-primary"
+                      : "border border-border bg-secondary/50 text-primary group-hover:bg-primary/10",
+                  )}>
                     <Icon className="size-5" />
                   </div>
-                  <h3 className="mt-4 font-display text-lg font-semibold">
+                  <h3 className={cn(
+                    "mt-4 font-display font-semibold",
+                    isHero ? "text-xl" : "text-lg",
+                  )}>
                     {t(f.title, locale)}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className={cn(
+                    "mt-2 leading-relaxed text-muted-foreground",
+                    isHero ? "text-sm sm:text-base" : "text-sm",
+                  )}>
                     {t(f.body, locale)}
                   </p>
                 </div>
@@ -400,7 +433,7 @@ export default function Home() {
 
       {/* ─────────── How it works ─────────── */}
       <section className="border-y border-border bg-card/30">
-        <div className="container py-20">
+        <div className="container py-24">
           <Reveal>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">
               {tl ? "Paano gumagana" : "How it works"}
@@ -414,11 +447,13 @@ export default function Home() {
               const Icon = s.icon;
               return (
                 <Reveal key={i} delay={i * 0.1}>
-                  <div className="relative h-full rounded-xl border border-border bg-background p-6 shadow-card">
-                    <span className="absolute right-5 top-5 font-display text-4xl font-bold text-border">
+                  <div className="relative h-full rounded-xl border border-border bg-background p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated/30">
+                    <span className="absolute right-5 top-5 font-display text-5xl font-bold text-border/60">
                       {i + 1}
                     </span>
-                    <Icon className="size-7 text-primary" />
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+                      <Icon className="size-6 text-primary" />
+                    </div>
                     <h3 className="mt-4 font-display text-lg font-semibold">
                       {t(s.title, locale)}
                     </h3>
@@ -434,8 +469,9 @@ export default function Home() {
       </section>
 
       {/* ─────────── Live demo ─────────── */}
-      <section id="demo" className="container scroll-mt-16 py-20">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+      <section id="demo" className="relative scroll-mt-16 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-spotlight opacity-50" />
+        <div className="container relative grid gap-10 py-24 lg:grid-cols-2 lg:items-center">
           <Reveal>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">
               {tl ? "Subukan mo mismo" : "Try it yourself"}
@@ -459,15 +495,18 @@ export default function Home() {
               </Button>
             </div>
           </Reveal>
-          <Reveal delay={0.1}>
-            <SmcChart spec={demoChart} />
+          <Reveal delay={0.1} className="relative">
+            <div className="pointer-events-none absolute -inset-8 -z-10 bg-glow-bottom opacity-70" />
+            <div className="rounded-xl border border-border bg-card p-4 shadow-elevated sm:p-5">
+              <SmcChart spec={demoChart} />
+            </div>
           </Reveal>
         </div>
       </section>
 
       {/* ─────────── Curriculum ─────────── */}
       <section id="curriculum" className="border-t border-border scroll-mt-16">
-        <div className="container py-20">
+        <div className="container py-24">
           <Reveal>
             <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
               {tl ? "Ang kurikulum" : "The curriculum"}
@@ -481,7 +520,7 @@ export default function Home() {
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             {curriculum.map((m, i) => (
               <Reveal key={m.slug} delay={(i % 2) * 0.06}>
-                <div className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40">
+                <div className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-elevated/30">
                   <div className="flex items-start justify-between gap-3">
                     <span className="font-mono text-sm text-primary">
                       {String(i + 1).padStart(2, "0")}
@@ -509,19 +548,22 @@ export default function Home() {
 
       {/* ─────────── FAQ ─────────── */}
       <section className="border-t border-border bg-card/30">
-        <div className="container py-20">
+        <div className="container py-24">
           <Reveal>
-            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">
+              {tl ? "Mga tanong" : "FAQ"}
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
               {tl ? "Mga madalas itanong" : "Frequently asked"}
             </h2>
           </Reveal>
-          <div className="mx-auto mt-8 max-w-2xl space-y-3">
+          <div className="mx-auto mt-10 max-w-2xl space-y-3">
             {faqs.map((f, i) => (
               <Reveal key={i} delay={i * 0.04}>
-                <details className="group rounded-xl border border-border bg-background p-5 [&_summary]:cursor-pointer">
+                <details className="group rounded-xl border border-border bg-background p-5 transition-all duration-200 open:shadow-card hover:border-primary/30 [&_summary]:cursor-pointer">
                   <summary className="flex items-center justify-between gap-4 font-medium marker:content-none">
                     {t(f.q, locale)}
-                    <span className="text-muted-foreground transition-transform group-open:rotate-45">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-secondary text-sm text-muted-foreground transition-all duration-200 group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
                       +
                     </span>
                   </summary>
@@ -538,7 +580,8 @@ export default function Home() {
       {/* ─────────── Final CTA ─────────── */}
       <section className="relative overflow-hidden border-t border-border">
         <div className="pointer-events-none absolute inset-0 bg-glow-bottom" />
-        <div className="container relative py-24 text-center">
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
+        <div className="container relative py-28 text-center">
           <Reveal>
             <h2 className="mx-auto max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-5xl">
               {tl
@@ -551,7 +594,7 @@ export default function Home() {
                 : "Free forever. Learn at your own pace, on any device."}
             </p>
             <div className="mt-8 flex justify-center">
-              <Button asChild size="lg" className="glow-accent">
+              <Button asChild size="lg" className="animate-glow-pulse">
                 <Link href="/login">
                   {tl ? "Mag-enroll nang libre" : "Enroll free"}
                   <ArrowRight className="size-4" />

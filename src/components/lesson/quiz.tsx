@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, XCircle, Trophy, ArrowRight, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import type { QuizQuestion } from "@/content/schema";
 import { t } from "@/content/schema";
 import { useLocale } from "@/components/locale-provider";
@@ -76,6 +77,9 @@ export function Quiz({
       answers: Object.fromEntries(quiz.map((x) => [x.id, x.correctOptionId])),
     });
     onPassed();
+    if (res.ok) {
+      toast.success(tl ? "Na-save ang progreso!" : "Progress saved!");
+    }
     if (!res.ok) {
       const reason = res.reason ?? "";
       const dbMissing = /schema cache|does not exist|could not find the table/i.test(
@@ -132,12 +136,23 @@ export function Quiz({
   if (finished) {
     const acedFirstTry = firstScore === total;
     return (
-      <section className="mt-6 rounded-xl border border-border bg-card p-6 text-center shadow-card">
-        <Trophy className="mx-auto size-10 text-gold" />
-        <h3 className="mt-3 font-display text-xl font-bold text-bull">
-          {tl ? "Perpekto! 100%" : "Perfect! 100%"}
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <section className="mt-6 rounded-xl border border-bull/20 bg-card p-6 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gold/10">
+            <Trophy className="size-6 text-gold" />
+          </div>
+          <div>
+            <h3 className="font-display text-xl font-bold text-bull">
+              {tl ? "Perpekto! 100%" : "Perfect! 100%"}
+            </h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {tl
+                ? "Pwede ka nang pumunta sa susunod."
+                : "You can move on to the next one."}
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {acedFirstTry
             ? tl
               ? "Tama lahat sa unang subok. Ang galing!"
@@ -145,11 +160,6 @@ export function Quiz({
             : tl
               ? `Naipasa mo lahat pagkatapos i-review ang mga nasagot mong mali (${total - (firstScore ?? 0)} tanong). Ito ang totoong natututo.`
               : `You got everything right after reviewing the ones you missed (${total - (firstScore ?? 0)} question${total - (firstScore ?? 0) === 1 ? "" : "s"}). That's real learning.`}
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {tl
-            ? "Pwede ka nang pumunta sa susunod."
-            : "You can move on to the next one."}
         </p>
         <Button variant="outline" onClick={restart} className="mt-4">
           <RefreshCw className="size-4" />
@@ -211,11 +221,11 @@ export function Quiz({
               disabled={answered}
               onClick={() => choose(opt.id)}
               className={cn(
-                "flex items-center gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
-                !answered && "border-border hover:border-primary/60",
+                "flex items-center gap-3 rounded-lg border px-4 py-3.5 text-left text-sm transition-all duration-200",
+                !answered && "border-border hover:border-primary/60 hover:bg-primary/5 hover:shadow-sm",
                 show && isCorrect && "border-bull/60 bg-bull/10",
                 show && isChosen && !isCorrect && "border-destructive/60 bg-destructive/10",
-                answered && !show && "border-border opacity-60",
+                answered && !show && "border-border opacity-50",
               )}
             >
               <span className="flex-1">{t(opt.text, locale)}</span>
@@ -232,8 +242,8 @@ export function Quiz({
         <>
           <p
             className={cn(
-              "mt-3 rounded-md px-3 py-2 text-sm",
-              correct ? "bg-bull/10 text-foreground" : "bg-muted/60 text-foreground",
+              "mt-4 rounded-lg px-4 py-3 text-sm leading-relaxed",
+              correct ? "border border-bull/20 bg-bull/10 text-foreground" : "border border-border bg-muted/40 text-foreground",
             )}
           >
             <span className="font-semibold">

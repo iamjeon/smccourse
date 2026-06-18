@@ -2,7 +2,7 @@
   "name": "smc-chat-relay",
   "version": "1.0.0",
   "private": true,
-  "description": "Lightweight WebSocket relay for Liquidity Lab community chat (10K+ concurrent)",
+  "description": "Lightweight WebSocket relay for SMC Course community chat (10K+ concurrent)",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

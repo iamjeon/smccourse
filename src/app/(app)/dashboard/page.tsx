@@ -40,12 +40,24 @@ export default async function DashboardPage() {
     (l) => !progress[l.slug] || progress[l.slug]?.status !== "completed",
   );
 
-  // Quiz stats
-  const { data: quizRows } = await supabase!
-    .from("quiz_attempts")
-    .select("lesson_slug,score,total,attempted_at")
-    .eq("user_id", user.id)
-    .order("attempted_at", { ascending: false });
+  const [{ data: quizRows }, { data: journalRows }, { data: recentRows }] =
+    await Promise.all([
+      supabase!
+        .from("quiz_attempts")
+        .select("lesson_slug,score,total,attempted_at")
+        .eq("user_id", user.id)
+        .order("attempted_at", { ascending: false }),
+      supabase!
+        .from("journal_entries")
+        .select("outcome,rr")
+        .eq("user_id", user.id),
+      supabase!
+        .from("lesson_progress")
+        .select("lesson_slug,status,last_viewed_at")
+        .eq("user_id", user.id)
+        .order("last_viewed_at", { ascending: false })
+        .limit(5),
+    ]);
 
   const quizAttempts = (quizRows ?? []) as Array<{
     lesson_slug: string;
@@ -53,26 +65,10 @@ export default async function DashboardPage() {
     total: number;
     attempted_at: string;
   }>;
-
-  // Journal stats
-  const { data: journalRows } = await supabase!
-    .from("journal_entries")
-    .select("outcome,rr")
-    .eq("user_id", user.id);
-
   const journalEntries = (journalRows ?? []) as Array<{
     outcome: string;
     rr: number | null;
   }>;
-
-  // Recent activity: last 5 viewed lessons
-  const { data: recentRows } = await supabase!
-    .from("lesson_progress")
-    .select("lesson_slug,status,last_viewed_at")
-    .eq("user_id", user.id)
-    .order("last_viewed_at", { ascending: false })
-    .limit(5);
-
   const recentActivity = (recentRows ?? []) as Array<{
     lesson_slug: string;
     status: string;

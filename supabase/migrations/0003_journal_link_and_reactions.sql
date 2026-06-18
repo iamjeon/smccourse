@@ -1,5 +1,5 @@
 -- ────────────────────────────────────────────────────────────────────────────
--- Liquidity Lab — journal lesson-link + chat reactions
+-- SMC Course — journal lesson-link + chat reactions
 -- Adds: journal_entries.lesson_slug (link a trade to the lesson/setup it used),
 -- and chat_reactions (emoji reactions on community messages, realtime).
 -- ────────────────────────────────────────────────────────────────────────────

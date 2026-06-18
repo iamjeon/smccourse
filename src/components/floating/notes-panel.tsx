@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/locale-provider";
 import { getLesson } from "@/content/course";
 import { t } from "@/content/schema";
+import { toast } from "sonner";
 import {
   createNote,
   deleteNote,
@@ -191,7 +192,9 @@ export function NotesPanel() {
   async function onDelete(id: string) {
     setNotes((prev) => prev.filter((n) => n.id !== id));
     if (activeId === id) setActiveId(null);
-    await deleteNote({ id });
+    const res = await deleteNote({ id });
+    if (res.ok) toast.success("Note deleted");
+    else toast.error("Could not delete note");
   }
 
   // ── Editor view ────────────────────────────────────────────────────────────

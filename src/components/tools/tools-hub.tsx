@@ -78,20 +78,20 @@ export function ToolsHub() {
             <Link
               key={tool.href}
               href={tool.href}
-              className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
+              className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-elevated/30"
             >
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
                 <Icon className="size-5" />
               </div>
               <h2 className="mt-3 font-display text-lg font-semibold">
                 {tl ? tool.title.tl : tool.title.en}
               </h2>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                 {tl ? tool.desc.tl : tool.desc.en}
               </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                 {tl ? "Buksan" : "Open"}
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
               </span>
             </Link>
           );

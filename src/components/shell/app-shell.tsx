@@ -107,10 +107,10 @@ function SidebarNav({
 
   const itemClass = (active: boolean) =>
     cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
       active
-        ? "bg-primary/10 text-primary"
-        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+        ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
+        : "text-muted-foreground hover:bg-accent hover:text-foreground hover:translate-x-0.5",
     );
 
   return (
@@ -174,7 +174,7 @@ function SidebarNav({
         <button
           type="button"
           onClick={onSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
         >
           <LogOut className="size-[18px] shrink-0" />
           {tl ? "Mag-logout" : "Sign out"}

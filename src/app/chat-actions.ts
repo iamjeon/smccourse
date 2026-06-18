@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { requireUser } from "@/lib/supabase/require-user";
+import { checkActionRate } from "@/lib/action-rate-limit";
 
 const bodySchema = z.string().trim().min(1).max(500);
 
@@ -29,6 +30,8 @@ export async function sendChatMessage(input: {
 }): Promise<{ ok: boolean; reason?: string }> {
   const ctx = await requireUser();
   if ("error" in ctx) return { ok: false, reason: ctx.error };
+  if (!checkActionRate(ctx.user.id, "chat", 12, 60_000))
+    return { ok: false, reason: "Slow down. Try again in a moment." };
   const parsed = bodySchema.safeParse(input.body);
   if (!parsed.success)
     return { ok: false, reason: "Message must be 1 to 500 characters." };

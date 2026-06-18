@@ -58,12 +58,12 @@ export function SiteHeader() {
 
         {isLanding && (
           <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
-            <Link href="#demo" className="transition-colors hover:text-foreground">
+            <Link href="#demo" className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-200 hover:after:scale-x-100">
               {locale === "tl" ? "Demo" : "Demo"}
             </Link>
             <Link
               href="#curriculum"
-              className="transition-colors hover:text-foreground"
+              className="relative transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-200 hover:after:scale-x-100"
             >
               {locale === "tl" ? "Kurikulum" : "Curriculum"}
             </Link>

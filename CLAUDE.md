@@ -1,4 +1,4 @@
-# CLAUDE.md — Liquidity Lab (Free SMC Course Platform)
+# CLAUDE.md — SMC Course (Free SMC Course Platform)
 
 > Guidance for Claude when working in this repo. Keep this file **under 100 lines**.
 > Details live in the linked docs — link, don't inline.

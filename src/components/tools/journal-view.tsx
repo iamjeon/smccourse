@@ -24,6 +24,7 @@ import {
   deleteJournalEntry,
   updateJournalEntry,
 } from "@/app/journal-actions";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export type JournalEntry = {
@@ -164,8 +165,10 @@ export function JournalView({ entries }: { entries: JournalEntry[] }) {
           : await updateJournalEntry({ id: editing.id, ...payload });
       if (!res.ok) {
         setError(res.reason ?? "Could not save");
+        toast.error(res.reason ?? "Could not save trade");
         return;
       }
+      toast.success(editing === "new" ? "Trade logged" : "Trade updated");
       setEditing(null);
       router.refresh();
     });
@@ -173,7 +176,9 @@ export function JournalView({ entries }: { entries: JournalEntry[] }) {
 
   function remove(id: string) {
     startTransition(async () => {
-      await deleteJournalEntry({ id });
+      const res = await deleteJournalEntry({ id });
+      if (res.ok) toast.success("Trade deleted");
+      else toast.error(res.reason ?? "Could not delete");
       router.refresh();
     });
   }
@@ -324,7 +329,7 @@ export function JournalView({ entries }: { entries: JournalEntry[] }) {
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
             </label>
           </div>
-          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+          {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
           <div className="mt-3 flex justify-end">
             <Button onClick={submit} disabled={pending || !pair.trim()}>
               {editing === "new"

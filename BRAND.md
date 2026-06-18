@@ -1,25 +1,20 @@
-# Brand Guidelines — Liquidity Lab (working name)
+# Brand Guidelines — SMC Course
 
 > Single source of truth for look & feel. Tokens are implemented in
 > `src/app/globals.css` and `tailwind.config.ts`; the name/tagline live in
 > `src/lib/brand.ts`. Change them in one place, they update everywhere.
 
 ## 1. Name & positioning
-**Working name:** Liquidity Lab. Alternatives to choose from:
-- **Liquidity Lab** — modern, lab = practice/experiment. (current default)
-- **FlowState SMC** — order flow + focus.
-- **Smart Money Academy** — clear, literal, SEO-friendly.
+**Name:** SMC Course
+**Subtitle:** Smart Money Concepts
 
 **Tagline:** "Learn Smart Money Concepts — for free."
 **Voice:** Direct, mentor-like, no hype, no "get rich quick." Bilingual-friendly
 (English + Taglish). Speak to traders as peers. Always risk-aware.
 
-## 2. Logo direction
-A simple, geometric mark that reads at 24px (favicon) and on dark backgrounds:
-- Concept: an abstract **liquidity sweep** — a candlestick wick piercing a level
-  line, or a stylized "L" formed by a price leg. Monoline, single accent color.
-- Provide: full lockup (mark + wordmark), mark-only, and monochrome variants.
-- Until final art exists, the wordmark in Space Grotesk Bold is the placeholder logo.
+## 2. Logo
+The logo is `public/logo.png` — a book-globe-candlestick-coin illustration.
+It is rendered via the `<Logo>` / `<LogoMark>` components using `next/image`.
 
 ## 3. Color system (dark-first)
 | Token | Hex | Use |

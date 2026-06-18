@@ -1,4 +1,4 @@
-# Liquidity Lab — Free SMC Course Platform
+# SMC Course — Free SMC Course Platform
 
 A free, mobile-first web platform that turns your SMC trading transcripts into an
 interactive course: **Modules → Lessons → Quizzes**, with animated charts, an

@@ -6,6 +6,43 @@ something new.
 
 ---
 
+## 2026-06-18 — Production readiness Phases 2+3 (quality, resilience, scale)
+Phase 2 (quality & resilience):
+- **Toast system:** Sonner integrated into root layout. Quiz save, journal CRUD, chat send
+  errors, and note delete all surface toast notifications for consistent user feedback.
+- **Dynamic imports:** `SmcChart` lazy-loaded on landing (`next/dynamic`); `CommunityChat`
+  dynamically imported with `ssr: false` (page first-load: 5.8kB → 1.3kB).
+- **PWA manifest:** `src/app/manifest.ts` with brand identity, standalone display, theme color.
+- **Accessibility:** `aria-live="polite"` on chat message list, `role="alert"` on error
+  messages (chat/login/journal), `aria-describedby` linking inputs to their error displays.
+
+Phase 3 (scale prep, code-side):
+- **Rate limiting on ALL server actions:** notes (30/min) added. Full coverage: chat 12/min,
+  journal 20/min, quiz 10/min, exam 5/min, notes 30/min. Two layers: middleware (IP-based)
+  + server action (user-ID-based).
+- **Dashboard queries parallelized:** quiz attempts, journal entries, and recent activity
+  fetched with `Promise.all` instead of sequential awaits.
+- **Remaining (owner decision):** Supabase Pro ($25/mo) + Vercel Pro ($20/mo) for 5K users.
+
+Master plan: [PRODUCTION-AUDIT.md](PRODUCTION-AUDIT.md).
+
+## 2026-06-18 — Production readiness Phase 1 (ship blockers)
+Full audit across security, SEO, performance, scalability, and UX. Phase 1 implemented:
+- **SEO basics:** SVG favicon, dynamic `sitemap.ts` (all lesson pages), `robots.ts`,
+  Open Graph + Twitter Card meta tags in root layout.
+- **Error boundaries:** `global-error.tsx` (root crash), `(app)/error.tsx` (route errors
+  with retry + dashboard link), `not-found.tsx` (branded 404).
+- **Loading skeletons:** `Skeleton` UI primitive + `loading.tsx` for dashboard, academy,
+  lesson, journal, community (shimmer placeholders while data loads).
+- **Rate limiting:** two layers: (1) middleware IP-based for `/login`, `/auth/callback`,
+  `/api/` (10-30 req/min); (2) server-action user-ID-based for chat (12/min), journal
+  (20/min), quiz (10/min), exam (5/min). Uses in-memory sliding windows.
+- **CSP header:** `Content-Security-Policy` in `next.config.mjs` allowing self, Supabase
+  (HTTPS+WSS), and the Fly.io chat relay. Blocks frames, objects, and external scripts.
+- **Open redirect fix:** Auth callback and login page validate the `next` param against an
+  allowlist of internal paths. No more arbitrary redirect via query string.
+- Master plan: [PRODUCTION-AUDIT.md](PRODUCTION-AUDIT.md) (Phases 2-3 remain).
+
 ## 2026-06-17 — Debug + smoke-test skill & agent (owner decision)
 Added a standing "smoke test after every change" workflow so regressions are caught before work
 is reported done.
@@ -193,8 +230,7 @@ except the pre-existing, owner-toggled leaked-password setting).
   accuracy proof, then scale.
 - **Visuals: generated, accurate AND engaging.** Custom animated SVG candlestick engine
   driven by hand-authored OHLC + annotations — not static images, not real-market guesses.
-- **Brand: created fresh.** Working name "Liquidity Lab" (see BRAND.md); final name TBD by
-  owner from 3 options.
+- **Brand: created fresh.** Name is "SMC Course" (see BRAND.md).
 - **Stack: Next.js 15 + Supabase + Vercel**, all free tier. Why: static lesson pages are
   CDN-cacheable (scale ~free), Supabase free tier handles thousands of users, Vercel gives
   automatic TLS + CDN. See ARCHITECTURE.md.

@@ -1,6 +1,6 @@
 # Architecture
 
-How Liquidity Lab stays free while serving thousands of users, and how the pieces fit.
+How SMC Course stays free while serving thousands of users, and how the pieces fit.
 
 ## Big picture
 ```

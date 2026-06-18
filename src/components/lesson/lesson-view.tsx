@@ -61,9 +61,9 @@ export function LessonView({
       <div className="mb-4">
         <Link
           href="/academy"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="group inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
           {tl ? "Balik sa kurso" : "Back to course"}
         </Link>
       </div>
@@ -94,35 +94,41 @@ export function LessonView({
       {/* Quiz gate */}
       <div className="mt-10 border-t border-border pt-8">
         {!showQuiz ? (
-          <div className="rounded-xl border border-border bg-card p-6 text-center shadow-card">
-            <ListChecks className="mx-auto size-8 text-primary" />
-            <h2 className="mt-3 font-display text-xl font-semibold">
-              {passed
-                ? tl
-                  ? "Naipasa mo na ang lesson na ito"
-                  : "You've completed this lesson"
-                : tl
-                  ? "Handa ka na ba?"
-                  : "Ready to test yourself?"}
-            </h2>
-            <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
-              {passed
-                ? tl
-                  ? "Pwede mong ulitin ang quiz o magpatuloy sa susunod."
-                  : "You can retake the quiz or move on to the next lesson."
-                : tl
-                  ? "Sagutan ang quiz para makumpleto ang lesson. Kailangan ng 100% para magpatuloy."
-                  : "Pass the quiz to complete this lesson. You need 100% to continue."}
-            </p>
-            <Button className="mt-4" onClick={() => setShowQuiz(true)}>
-              {passed
-                ? tl
-                  ? "Ulitin ang quiz"
-                  : "Review quiz"
-                : tl
-                  ? "Sagutan ang quiz"
-                  : "Take quiz now"}
-            </Button>
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <div className="flex items-start gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <ListChecks className="size-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  {passed
+                    ? tl
+                      ? "Naipasa mo na ang lesson na ito"
+                      : "You've completed this lesson"
+                    : tl
+                      ? "Handa ka na ba?"
+                      : "Ready to test yourself?"}
+                </h2>
+                <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+                  {passed
+                    ? tl
+                      ? "Pwede mong ulitin ang quiz o magpatuloy sa susunod."
+                      : "You can retake the quiz or move on to the next lesson."
+                    : tl
+                      ? "Sagutan ang quiz para makumpleto ang lesson. Kailangan ng 100% para magpatuloy."
+                      : "Pass the quiz to complete this lesson. You need 100% to continue."}
+                </p>
+                <Button className="mt-4" onClick={() => setShowQuiz(true)}>
+                  {passed
+                    ? tl
+                      ? "Ulitin ang quiz"
+                      : "Review quiz"
+                    : tl
+                      ? "Sagutan ang quiz"
+                      : "Take quiz now"}
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <Quiz
@@ -138,10 +144,10 @@ export function LessonView({
         {prev ? (
           <Link
             href={`/learn/${prev.slug}`}
-            className="flex flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/50"
+            className="group flex flex-col rounded-lg border border-border bg-card p-4 transition-all duration-200 hover:border-muted-foreground/50 hover:shadow-sm"
           >
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
               {tl ? "Nakaraan" : "Previous"}
             </span>
             <span className="mt-1 text-sm font-medium">{t(prev.title, locale)}</span>
@@ -154,11 +160,11 @@ export function LessonView({
           passed ? (
             <Link
               href={`/learn/${next.slug}`}
-              className="flex flex-col rounded-lg border border-border bg-card p-4 text-right transition-colors hover:border-primary/50"
+              className="group flex flex-col rounded-lg border border-border bg-card p-4 text-right transition-all duration-200 hover:border-primary/50 hover:shadow-sm"
             >
               <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground">
                 {tl ? "Susunod" : "Next"}
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </span>
               <span className="mt-1 text-sm font-medium">{t(next.title, locale)}</span>
             </Link>
