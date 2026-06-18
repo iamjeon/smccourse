@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Award,
   BookA,
+  BookOpen,
   Calculator,
   GraduationCap,
   Home,
@@ -48,6 +49,7 @@ const NAV: NavGroup[] = [
     items: [
       { href: "/dashboard", icon: Home, label: { en: "Dashboard", tl: "Dashboard" } },
       { href: "/academy", icon: GraduationCap, label: { en: "Academy", tl: "Academy" }, public: true },
+      { href: "/guides", icon: BookOpen, label: { en: "Guides", tl: "Mga gabay" }, public: true },
     ],
   },
   {

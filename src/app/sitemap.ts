@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllLessons } from "@/content/course";
 import { glossary, glossarySlug } from "@/content/glossary";
+import { articles } from "@/content/articles";
 import { siteUrl } from "@/lib/supabase/env";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -12,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: siteUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
     { url: `${siteUrl}/academy`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${siteUrl}/courses/smc`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/tools/glossary`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/tools/calculator`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/login`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
@@ -31,5 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...lessonPages, ...glossaryPages];
+  const guidePages: MetadataRoute.Sitemap = articles.map((a) => ({
+    url: `${siteUrl}/guides/${a.slug}`,
+    lastModified: new Date(a.updated),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...lessonPages, ...glossaryPages, ...guidePages];
 }

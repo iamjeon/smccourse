@@ -57,13 +57,12 @@ export const metadata: Metadata = {
     siteName: brand.name,
     title: `${brand.name} · ${brand.tagline}`,
     description: brand.description,
-    images: [{ url: "/logo.png", width: 640, height: 128, alt: brand.name }],
+    // Social image is provided site-wide by app/opengraph-image.tsx (1200x630).
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `${brand.name} · ${brand.tagline}`,
     description: brand.description,
-    images: ["/logo.png"],
   },
 };
 
