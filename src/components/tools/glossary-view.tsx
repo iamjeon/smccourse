@@ -10,6 +10,7 @@ import { getLesson } from "@/content/course";
 import {
   categoryLabels,
   glossary,
+  glossarySlug,
   type GlossaryCategory,
 } from "@/content/glossary";
 import { cn } from "@/lib/utils";
@@ -107,7 +108,14 @@ export function GlossaryView() {
             className="rounded-xl border border-border bg-card p-4 shadow-card"
           >
             <div className="flex items-baseline justify-between gap-2">
-              <h2 className="font-display font-semibold">{term.term}</h2>
+              <h2 className="font-display font-semibold">
+                <Link
+                  href={`/tools/glossary/${glossarySlug(term.term)}`}
+                  className="transition-colors hover:text-primary"
+                >
+                  {term.term}
+                </Link>
+              </h2>
               <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                 {t(categoryLabels[term.category], locale)}
               </span>

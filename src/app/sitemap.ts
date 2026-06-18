@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllLessons } from "@/content/course";
+import { glossary, glossarySlug } from "@/content/glossary";
 import { siteUrl } from "@/lib/supabase/env";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -23,5 +24,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...lessonPages];
+  const glossaryPages: MetadataRoute.Sitemap = glossary.map((term) => ({
+    url: `${siteUrl}/tools/glossary/${glossarySlug(term.term)}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...lessonPages, ...glossaryPages];
 }

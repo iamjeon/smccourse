@@ -319,3 +319,29 @@ export const glossary: GlossaryTerm[] = [
     },
   },
 ];
+
+// ── Slug + lookups (drive the individual /tools/glossary/[slug] pages) ─────────
+/** URL slug for a term, dropping the parenthetical abbreviation, e.g.
+ * "Order block (OB)" -> "order-block", "Risk to reward (R:R)" -> "risk-to-reward". */
+export function glossarySlug(term: string): string {
+  return term
+    .replace(/\([^)]*\)/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** The term name without its parenthetical abbreviation, e.g. "Order block". */
+export function plainTermName(term: string): string {
+  return term.replace(/\s*\([^)]*\)/g, "").trim();
+}
+
+export function getGlossaryTerm(slug: string): GlossaryTerm | undefined {
+  return glossary.find((t) => glossarySlug(t.term) === slug);
+}
+
+/** Look up a term by its exact `term` string (used to resolve `related` links). */
+export function getTermByName(name: string): GlossaryTerm | undefined {
+  return glossary.find((t) => t.term === name);
+}
